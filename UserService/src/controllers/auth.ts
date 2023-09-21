@@ -6,7 +6,7 @@ import { Request, Response } from "express";
 
 export const register = async(req:Request, res:Response) => {
   try {
-    const { username, password } = req.body
+    const { username, password, role } = req.body
 
     const token = jwt.sign({ username }, process.env["JWT_SECRET"] || "")
     const salt = await bcrypt.genSalt(10)
@@ -19,7 +19,12 @@ export const register = async(req:Request, res:Response) => {
       })
     }
 
-    const user = await User.create({ username, password:hashed })
+    const user = await User.create({
+      username,
+      role,
+      password:hashed
+    })
+
     res.status(200).json({
       success: true,
       token,

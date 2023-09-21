@@ -9,6 +9,11 @@ const userSchema = new mongoose.Schema<IUser>({
     type: String,
     required: true
   },
+  role: {
+    type: String,
+    enum: ['customer','owner'],
+    required: true
+  },
   imgUrl: {
     type: String,
     required: false
@@ -20,6 +25,7 @@ export default mongoose.model("User",userSchema)
 export interface IUser {
   username: string,
   password: string,
+  role: 'customer' | 'owner'
   imgUrl?: string
   id: mongoose.Schema.Types.ObjectId
 }
