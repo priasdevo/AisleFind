@@ -21,4 +21,5 @@ export interface IUser {
   username: string,
   password: string,
   imgUrl?: string
+  id: mongoose.Schema.Types.ObjectId
 }

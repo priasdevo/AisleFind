@@ -20,7 +20,7 @@ export const protect = async(req:Request, res:Response, next:NextFunction)=>{
     const decoded = jwt.verify(token, process.env["JWT_SECRET"] || "") as JwtPayload;
     console.log(decoded);
 
-    req.user = await User.findById(decoded.id);
+    req.user = await User.findOne({username: decoded.username});
     next();
 
   } catch (err) {

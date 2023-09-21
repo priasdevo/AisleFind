@@ -1,7 +1,8 @@
 import express, {Request, Response} from "express";
-import User from "../models/user";
+import User, { IUser } from "../models/user";
 import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
+import { protect } from "../middleware/auth";
 
 const router = express.Router()
 
@@ -25,5 +26,53 @@ router.post('/register',async(req:Request, res:Response)=> {
   }
 })
 
+router.post('/login', async(req:Request, res:Response) => {
+  try {
+    const { username, password } = req.body;
+
+    //Validate email and password
+    if (!username || !password) {
+      return res.status(400).json({ success: false, msg: "Please provide an email and password" });
+    }
+    //Check for user
+    const user = await User.findOne({username}).select('+password +pin');
+
+    if (!user) {
+      return res.status(401).json({ success: false, msg: "Invalid credentials" });
+    }
+    const isMatch = await bcrypt.compare(password, user.password)
+
+    if (!isMatch) {
+      return res.status(401).json({success: false, msg: "Invalid credentials"});
+    }
+
+    const token = jwt.sign({ username }, process.env["JWT_SECRET"] || "")
+    res.status(200).json({success: true, token});
+
+  } catch (err) {
+    return res.status(500).json({ success:false, msg:err });
+  }
+})
+
+router.get('/logout', async(req:Request, res:Response) => {
+  res.cookie('token', 'none', {
+    expires: new Date(Date.now() + 10*1000),
+    httpOnly: true
+  });
+  res.status(200).json({ success: true });
+})
+
+router.get('/user', protect, async(req:Request, res:Response) => {
+  try{
+    const user = await User.findOne({username:req.user?.username}) as IUser
+    res.status(200).json({
+      success: true,
+      username: user.username
+    })
+  }
+  catch (err) {
+    res.status(500).json({ success:false });
+  }
+})
 
 export default router
