@@ -10,4 +10,9 @@ export async function sendMessage(queue:string, message:string, data:any) {
     ...data
   })
   ch.sendToQueue(queue, Buffer.from(bufferString));
+
+  setTimeout(()=>{
+    ch.close()
+    con.close()
+  }, 1000)
 }
