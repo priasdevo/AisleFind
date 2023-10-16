@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import User, {IUser} from "../models/user";
 import { Request, Response } from "express";
-
+import { sendMessage } from "../utils/logService";
 
 export const register = async(req:Request, res:Response) => {
   try {
@@ -25,6 +25,7 @@ export const register = async(req:Request, res:Response) => {
       password:hashed
     })
 
+    await sendMessage('Log', 'new user register', { username, role });
     res.status(200).json({
       success: true,
       token,
@@ -52,9 +53,11 @@ export const login = async(req:Request, res:Response)=>{
     const isMatch = await bcrypt.compare(password, user.password)
 
     if (!isMatch) {
+      await sendMessage('Log', 'user login with failed password', { username });
       return res.status(401).json({success: false, msg: "Invalid credentials"});
     }
 
+    await sendMessage('Log', 'user login success', { username });
     const token = jwt.sign({ username }, process.env["JWT_SECRET"] || "")
     res.status(200).json({success: true, token});
 
