@@ -1,0 +1,21 @@
+@import '@/variable';
+
+.header-container {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    height: 5vh;
+    border-bottom: 1px solid black;
+    gap: 20px;
+}
+
+.search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    background-color: $primary-500;
+    border: none;
+}
