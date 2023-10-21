@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+  broker:
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'
+      - '8080:15672'
+  database:
+    image: mongo:4.4
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - '27019:27017'
+    volumes:
+      - ./db-data:/data/db
