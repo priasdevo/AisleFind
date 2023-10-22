@@ -1,17 +1,49 @@
 import Item, {IItem} from "../entity/item";
 import { Request, Response } from 'express';
-import { getRepository } from 'typeorm';
-
-export const getItemList = async (req: Request, res: Response) => {
-    const items = await getRepository(Item).find();
-    res.json(items);
-}
+import { getRepository, getConnection, Like } from 'typeorm';
 
 export const findItem = async (req: Request, res: Response) => {
     const id = Number(req.params.id);  // Convert the ID from string to number
+    if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid item ID provided' });
+    }
     const item = await getRepository(Item).findOne({ where: { id } });
     if (!item) return res.status(404).json({ message: 'Item not found' });
     res.json(item);
+}
+
+//search item by name
+export const searchItem = async (req: Request, res: Response) => {
+    if (req.query.title) {
+        let title: string = req.query.title as string;
+        
+        // Use the Like operator to search for items containing the title substring
+        const items = await getRepository(Item).find({
+            where: {
+                title: Like(`%${title}%`)
+            },
+            select: ["id", "title", "description", "layout_id"]
+        });
+
+         // If items are found, increase the searchCount for each item
+         if (items.length > 0) {
+            await getConnection()
+                .createQueryBuilder()
+                .update(Item)
+                .set({ search_count: () => "search_count + 1" }) // Increment searchCount by 1
+                .whereInIds(items.map(item => item.id)) // Apply the update only to items found in the search
+                .execute();
+        } else {
+            return res.status(404).json([]);
+        }
+        res.json(items);
+    } else {
+        // If there's no title query param, return all items
+        const items = await getRepository(Item).find({
+            select: ["id", "title", "description", "layout_id"]
+        });
+        res.json(items);
+    }
 }
 
 export const addItem = async (req: Request, res: Response) => {
@@ -24,6 +56,9 @@ export const addItem = async (req: Request, res: Response) => {
 
 export const editItem = async (req: Request, res: Response) => {
     const id = Number(req.params.id);  // Convert the ID from string to number
+    if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid item ID provided' });
+    }
     const item = await getRepository(Item).findOne({ where: { id } });
     if (!item) return res.status(404).json({ message: 'Item not found' });
 
@@ -33,20 +68,42 @@ export const editItem = async (req: Request, res: Response) => {
 }
 
 export const deleteItem = async (req: Request, res: Response) => {
-    const result = await getRepository(Item).delete(req.params.id);
+    const id = Number(req.params.id);  // Convert the ID from string to number
+    if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid item ID provided' });
+    }
+    const result = await getRepository(Item).delete(id);
     if (result.affected === 0) return res.status(404).json({ message: 'Item not found' });
     res.json({ message: 'Item deleted' });
 }
 
 // Get stats about items
-export const getItemStats = (req: Request, res: Response) => {
-    //TODO : Returning item statistics
-    res.json({ message: "Returning item statistics", data: {} });
+export const getItemStats = async (req: Request, res: Response) => {
+    const items = await getRepository(Item).find({
+        select: ["id", "title", "search_count", "layout_id"]
+    });
+    res.json(items);
 }
 
+
+// Get stats about a item
+export const getItemStatsById = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);  // Convert the ID from string to number
+    if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid item ID provided' });
+    }
+    const item = await getRepository(Item).findOne({
+        where: { id },
+        select: ["id", "title", "search_count", "layout_id"]
+    });
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+    res.json(item);
+}
+
+
 // Get items by aisle
-export const getItemByAisle = (req: Request, res: Response) => {
+export const getItemByAisle = async (req: Request, res: Response) => {
     //TODO : waiting for Store service
     const aisle = req.query.aisle;
-    res.json({ message: `Returning items for aisle ${aisle}`, data: [] });
+    res.json({ message: `Returning items for aisle ${aisle} //WIP, waiting for Store service`, data: [] });
 }
