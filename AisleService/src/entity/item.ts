@@ -9,14 +9,17 @@ export default class Item {
     @Column()
     title!: string;
 
-    @Column()
+    @Column({ default: '' })
     description?: string;
 
-    @Column()
-    searchCount?: number;
+    @Column({ default: 0 })
+    search_count?: number;
 
     @Column()
     layout_id!: number;
+
+    @Column()
+    store_id!: number;
 }
 
 export interface IItem {
