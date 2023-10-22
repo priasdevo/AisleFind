@@ -1,7 +1,6 @@
 import './header.scss'
 import { AiOutlineSearch } from 'react-icons/ai'
 import { MdLogout } from 'react-icons/md'
-import { Typography } from "@mui/material";
 
 export default function Header(){
   return (
