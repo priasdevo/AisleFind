@@ -79,6 +79,9 @@ export const getCurrentUser = async(req:Request, res:Response) => {
     const user = await User.findOne({ username:req.user?.username }) as IUser
     res.status(200).json({
       success: true,
+      id: user.id,
+      imgUrl: user.imgUrl || "",
+      role: user.role,
       username: user.username
     })
   }

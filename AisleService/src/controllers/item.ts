@@ -2,6 +2,7 @@ import Item, {IItem} from "../entity/item";
 import { Request, Response } from 'express';
 import { getRepository, getConnection, Like } from 'typeorm';
 
+//find item by id
 export const findItem = async (req: Request, res: Response) => {
     const id = Number(req.params.id);  // Convert the ID from string to number
     if (isNaN(id)) {
@@ -78,6 +79,7 @@ export const deleteItem = async (req: Request, res: Response) => {
 }
 
 // Get stats about items
+// TODO : get only item that match ownerId (waiting for StoreService)
 export const getItemStats = async (req: Request, res: Response) => {
     const items = await getRepository(Item).find({
         select: ["id", "title", "search_count", "layout_id"]
@@ -87,6 +89,7 @@ export const getItemStats = async (req: Request, res: Response) => {
 
 
 // Get stats about a item
+// TODO : get only item that match ownerId (waiting for StoreService)
 export const getItemStatsById = async (req: Request, res: Response) => {
     const id = Number(req.params.id);  // Convert the ID from string to number
     if (isNaN(id)) {
