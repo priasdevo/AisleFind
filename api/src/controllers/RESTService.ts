@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
+import { sendMessage } from "../utils/logService";
 
 export const handleRESTServiceRequest = (service_URL: string) => {
     return async (req: Request, res: Response) => {
@@ -20,7 +21,8 @@ export const handleRESTServiceRequest = (service_URL: string) => {
             });
             res.send(response.data);
         } catch (error) {
-            console.log("Error : ", error);
+            sendMessage('Log', 'error', { error: error });
+            // console.log("Error : ", error);
             res.status(500).send(`Error forwarding to Service at ${service_URL}`);
         }
     };
