@@ -14,14 +14,14 @@ export default function Register(){
         <button className="small-button"><AiOutlineSearch/></button>
       </div>
 
-      <div className="form-container">
+      <form className="form-container">
         <h3>ลงทะเบียน</h3>
         <TextField label="Email" variant="outlined" className="field" />
         <PasswordTextField label="Password" variant="outlined" className="field" />
         <PasswordTextField label="Confirm password" variant="outlined" className="field" />
-        <button className="login-button">ลงทะเบียน</button>
+        <button className="login-button" type="submit">ลงทะเบียน</button>
         <p>มีบัญชีแล้ว? <Link href="/login" className="link">เข้าสู่ระบบ</Link></p>
-      </div>
+      </form>
     </div>
   )
 }
