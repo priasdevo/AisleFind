@@ -20,7 +20,8 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 const server = app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  // console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  console.log(`⚡️[server]: Server running in ${process.env.NODE_ENV||'DEVELOPMENT'} mode on host http://localhost:${port}`);
 });
 
 // Handle promise rejection

@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import mongoose from "mongoose";
 
 @Entity()
 export default class Item {
@@ -27,5 +28,6 @@ export interface IItem {
     title: string,
     description?: string,
     searchCount?: number,
-    layout_id: string
+    layout_id: number
+    store_id: number;
 }
