@@ -1,11 +1,13 @@
-import router from 'next/router'
+import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { useSnackbar } from "@/context/snackbarContext";
 
-const useLoginForm = () => {
+const useRegisterForm = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [conFirmPassword, setConFirmPassword] = useState('')
   const { displaySnackbar } = useSnackbar();
+  const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -17,12 +19,17 @@ const useLoginForm = () => {
       displaySnackbar('Password is required', 'error')
       return;
     }
+    if (password.trim() !== conFirmPassword.trim()) {
+      displaySnackbar('Password is not match', 'error')
+      return;
+    }
     try {
       const req = {
         username: username,
         password: password,
+        role: "customer"
       }
-      const res = await fetch(process.env["NEXT_PUBLIC_GATEWAY_URL"] + '/user/auth/login', {
+      const res = await fetch(process.env["NEXT_PUBLIC_GATEWAY_URL"] + '/user/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,10 +39,12 @@ const useLoginForm = () => {
 
       const data = await res.json();
 
+      console.log(data)
+
       if (!data.success) {
-        displaySnackbar('login failed', 'error');
+        displaySnackbar('This username is already taken', 'error');
       } else {
-        await router.push('/')
+        router.push('/')
         localStorage.setItem('token', data.token)
       }
     } catch (error) {
@@ -51,14 +60,20 @@ const useLoginForm = () => {
     setPassword(event.target.value)
   }
 
+  const handleConFirmPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setConFirmPassword(event.target.value)
+  }
+
   return {
     username,
     password,
+    conFirmPassword,
     handleSubmit,
     handleUsernameChange,
     handlePasswordChange,
+    handleConFirmPasswordChange,
   }
 
 }
 
-export default useLoginForm
+export default useRegisterForm
