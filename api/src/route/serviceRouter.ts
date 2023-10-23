@@ -1,5 +1,5 @@
 import express from 'express';
-import { handleRESTServiceRequest } from '../controllers/restService' // Adjust the import to the updated function
+import { handleRESTServiceRequest } from '../controllers/RESTService'
 import dotenv from "dotenv";
 import path from "path";
 
