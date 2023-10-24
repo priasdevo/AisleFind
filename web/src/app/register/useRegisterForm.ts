@@ -1,12 +1,14 @@
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { useSnackbar } from "@/context/snackbarContext";
+import {useUser} from "@/context/userContext";
 
 const useRegisterForm = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [conFirmPassword, setConFirmPassword] = useState('')
   const { displaySnackbar } = useSnackbar();
+  const { setIsLogin, setEmail } = useUser();
   const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -27,7 +29,7 @@ const useRegisterForm = () => {
       const req = {
         username: username,
         password: password,
-        role: "customer"
+        role: "owner"
       }
       const res = await fetch(process.env["NEXT_PUBLIC_GATEWAY_URL"] + '/user/auth/register', {
         method: 'POST',
@@ -39,13 +41,13 @@ const useRegisterForm = () => {
 
       const data = await res.json();
 
-      console.log(data)
-
       if (!data.success) {
         displaySnackbar('This username is already taken', 'error');
       } else {
         router.push('/')
         localStorage.setItem('token', data.token)
+        setIsLogin(true)
+        setEmail(username)
       }
     } catch (error) {
       console.log(error)

@@ -1,11 +1,14 @@
-import router from 'next/router'
+import { useRouter} from 'next/navigation'
 import React, { useState } from 'react'
 import { useSnackbar } from "@/context/snackbarContext";
+import {useUser} from "@/context/userContext";
 
 const useLoginForm = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const { displaySnackbar } = useSnackbar();
+  const { setIsLogin, setEmail } = useUser();
+  const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -35,8 +38,10 @@ const useLoginForm = () => {
       if (!data.success) {
         displaySnackbar('login failed', 'error');
       } else {
-        await router.push('/')
+        router.push('/')
         localStorage.setItem('token', data.token)
+        setIsLogin(true);
+        setEmail(username);
       }
     } catch (error) {
       console.log(error)
