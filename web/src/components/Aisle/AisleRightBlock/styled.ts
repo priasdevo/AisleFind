@@ -9,6 +9,7 @@ export const RightBlock = styled("div")`
   align-items: flex-end; // This will align the top edges of the children
   padding: 20px; // Add some padding around the main wrapper
   gap: 15px;
+  position: relative;
 `;
 
 export const SmallIconButton = styled("div")`

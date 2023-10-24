@@ -11,11 +11,9 @@ import {
 import useAisle from "@/hooks/useAisle";
 import AisleCell from "./AisleCell/AisleCell";
 import { Typography } from "@mui/material";
-import { AiOutlinePlus, AiOutlineShop } from "react-icons/ai";
-import { GrDocumentText } from "react-icons/gr";
+import { AiOutlineShop } from "react-icons/ai";
+import { HiOutlineDocumentText } from "react-icons/hi";
 import { IoMdStats } from "react-icons/io";
-import { CONFIRMKEYWORD } from "./constants";
-import AisleComponentManage from "./AisleRightBlock/AisleComponentManage/AisleComponentManage";
 import AisleRightBlock from "./AisleRightBlock/AisleRightBlock";
 
 interface AisleGridProps {
@@ -36,6 +34,10 @@ const AisleGrid = (props: AisleGridProps) => {
     confirmTrigger,
     mode,
     objectText,
+    itemList,
+    confirmItem,
+    shelfName,
+    selectItem,
   } = useAisle();
   console.log("AisleGrid render");
 
@@ -51,7 +53,10 @@ const AisleGrid = (props: AisleGridProps) => {
             flexDirection: "row",
             gap: "5px",
             padding: "10px",
+            background: mode <= 3 ? "#C26625" : "#fca86c",
+            color: mode <= 3 ? "white" : "",
           }}
+          onClick={() => changeMode(0, "")}
         >
           {"แก้ไขโครงสร้างร้าน"}
           <AiOutlineShop size={14} />
@@ -63,10 +68,13 @@ const AisleGrid = (props: AisleGridProps) => {
             flexDirection: "row",
             gap: "5px",
             padding: "10px",
+            background: mode <= 7 && mode >= 4 ? "#C26625" : "#fca86c",
+            color: mode <= 7 && mode >= 4 ? "white" : "",
           }}
+          onClick={() => changeMode(4, "")}
         >
           {"แก้ไขข้อมูลสินค้า"}
-          <GrDocumentText size={14} />
+          <HiOutlineDocumentText size={14} />
         </SmallIconButton>
         <SmallIconButton
           sx={{
@@ -75,7 +83,10 @@ const AisleGrid = (props: AisleGridProps) => {
             flexDirection: "row",
             gap: "5px",
             padding: "10px",
+            background: mode === 8 ? "#C26625" : "#fca86c",
+            color: mode === 8 ? "white" : "",
           }}
+          onClick={() => changeMode(8, "")}
         >
           {"ดูสถิติ"}
           <IoMdStats size={14} />
@@ -97,6 +108,7 @@ const AisleGrid = (props: AisleGridProps) => {
             rowSpan={cell.rowSpan}
             selected={cell.selected}
             status={cell.status}
+            text={cell.text}
             onClick={() => {
               cellClickHandle(cell.startRow, cell.startColumn);
             }}
@@ -108,6 +120,10 @@ const AisleGrid = (props: AisleGridProps) => {
         mode={mode}
         objectText={objectText!}
         confirmTrigger={confirmTrigger}
+        itemList={itemList}
+        confirmItem={confirmItem}
+        shelfName={shelfName!}
+        selectItem={selectItem}
       />
     </AisleGridWrapper>
   );

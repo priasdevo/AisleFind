@@ -33,7 +33,6 @@ export const AisleGridWrapper = styled("div")`
   display: flex;
   justify-content: space-between; // This will create space between the left content, center grid, and right buttons
   width: 100%;
-  align-items: start; // This will align the top edges of the children
   padding: 20px; // Add some padding around the main wrapper
 `;
 

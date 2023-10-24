@@ -8,6 +8,7 @@ type CellDetail = {
   columnSpan: number;
   selected?: boolean;
   status?: string;
+  text?: string;
 };
 
 type Position = {
@@ -15,11 +16,33 @@ type Position = {
   col: number;
   rowSpan?: number;
   colSpan?: number;
+  name?: string;
+};
+
+export type ItemPos = {
+  itemName: string;
+  location: string;
+  description: string;
+  selected?: boolean;
 };
 
 const useAisle = () => {
   const [cellDetails, setCellDetails] = useState<CellDetail[]>([]);
   const [objectText, setObjectText] = useState<string>();
+  const [shelfName, setShelfName] = useState<string>();
+  const [selectedItem, setSelectedItem] = useState<number>(-1);
+  const [itemList, setItemList] = useState<ItemPos[]>([
+    {
+      itemName: "อาหารแมว",
+      location: "ชั้นวาง 2",
+      description: "ฝั่งขวาชั้นบน",
+    },
+    {
+      itemName: "อาหารแมว 2",
+      location: "ชั้นวาง 4",
+      description: "ฝั่งซ้ายชั้นบน",
+    },
+  ]);
   const [mode, setMode] = useState<number>(0);
   /* Mode number meaning
   mode 0 : nothing
@@ -37,24 +60,15 @@ const useAisle = () => {
     { row: 1, col: 1, rowSpan: 2, colSpan: 2 },
     { row: 3, col: 3, rowSpan: 1, colSpan: 2 },
   ]);
-  const mockPositions = useMemo(() => {
-    return [
-      [1, 1, 2, 2],
-      [3, 3, 1, 2],
-      // ...
-    ];
-  }, []);
 
   const height = 7;
   const width = 7;
 
   useEffect(() => {
-    //console.log("Mock init");
     const grid: boolean[][] = Array.from({ length: height }, () =>
       Array(width).fill(false)
     );
 
-    // Transform the mockPositions into CellDetail format
     const occupiedCells: CellDetail[] = objectList.map((aisleObject, index) => {
       for (
         let row = aisleObject.row;
@@ -75,6 +89,7 @@ const useAisle = () => {
         rowSpan: aisleObject.rowSpan!,
         columnSpan: aisleObject.colSpan!,
         status: CELLSTATUS.OBJECT,
+        text: index + 1,
       };
     });
 
@@ -99,10 +114,8 @@ const useAisle = () => {
   }, [objectList]);
 
   const cellClickHandle = (startRow: number, startColumn: number) => {
-    //console.log("Cell click handle");
     setCellDetails((prevDetails) =>
       prevDetails.map((cell, index) => {
-        //console.log("Detail map : ", index);
         if (cell.startRow === startRow && cell.startColumn === startColumn) {
           if (mode === 0) {
             return cell;
@@ -110,16 +123,16 @@ const useAisle = () => {
             return cell;
           } else if (mode === 3 && cell.status !== CELLSTATUS.OBJECT) {
             return cell;
+          } else if (mode == 2) {
+          } else if (mode > 3 && cell.status != CELLSTATUS.OBJECT) {
+            return cell;
           }
 
           if (mode === 1 && !cell.selected) {
-            //console.log("Cell become selected : ", cell, index);
             setSelected((prevSelected) => [
               ...prevSelected,
               { row: cell.startRow, col: cell.startColumn },
             ]);
-
-            //console.log(selected);
           } else if (mode === 1 && cell.selected) {
             setSelected((prevSelected) =>
               prevSelected.filter((position) => {
@@ -178,7 +191,29 @@ const useAisle = () => {
                 );
               })
             );
+          } else if (!cell.selected) {
+            console.log("Prias test");
+            setSelected((prevSelected) => [
+              ...prevSelected,
+              {
+                row: cell.startRow,
+                col: cell.startColumn,
+                rowSpan: cell.rowSpan,
+                colSpan: cell.columnSpan,
+                name: cell.text,
+              },
+            ]);
+          } else {
+            setSelected((prevSelected) =>
+              prevSelected.filter((position) => {
+                return (
+                  position.row !== cell.startRow ||
+                  position.col !== cell.startColumn
+                );
+              })
+            );
           }
+          console.log("Prias ?? : ", cell.selected);
           return {
             ...cell,
             selected: !cell.selected,
@@ -288,10 +323,34 @@ const useAisle = () => {
     }
   };
 
+  const confirmItem = (
+    itenName: string,
+    itemShelf: string,
+    itemDescription: string
+  ) => {
+    console.log("ConfirmItem");
+    if (mode === 5) {
+      const newItem: ItemPos = {
+        itemName: itenName,
+        location: `ชั้นวาง ${itemShelf}`,
+        description: itemDescription,
+      };
+      setItemList((prev) => [...prev, newItem]);
+      setMode(4);
+    } else if (mode === 7) {
+      setItemList((prev) => prev.filter((_, index) => index !== selectedItem));
+      setMode(4);
+    }
+  };
+
   const changeMode = (nMode: number, text: string) => {
     if (mode === nMode && text === objectText) {
       setObjectText("");
-      setMode(0);
+      if (mode <= 3) {
+        setMode(0);
+      } else if (mode <= 7) {
+        setMode(4);
+      }
     } else {
       // Set mode according to the paramete r
       setMode(nMode);
@@ -299,6 +358,7 @@ const useAisle = () => {
     }
 
     // Reset the selected array
+    setSelectedItem(-1);
     setSelected([]);
 
     // Update cellDetails to set all selected properties to false
@@ -309,17 +369,63 @@ const useAisle = () => {
       };
     });
 
+    const updatedItemList = itemList.map((item) => {
+      return {
+        ...item,
+        selected: false,
+      };
+    });
+
+    setItemList(updatedItemList);
     setCellDetails(updatedCellDetails);
+  };
+
+  const selectItem = (index: number) => {
+    if (mode !== 6 && mode !== 7) {
+      return;
+    }
+    if (selectedItem) {
+      const oldItem = { ...itemList[selectedItem], selected: false };
+
+      const updatedItem = { ...itemList[index], selected: true };
+
+      setItemList((prevList) =>
+        prevList.map((item, indexs) =>
+          indexs === index
+            ? updatedItem
+            : indexs === selectedItem
+            ? oldItem
+            : item
+        )
+      );
+      setSelectedItem(index);
+    } else {
+      setSelectedItem(index);
+      const updatedItem = { ...itemList[index], selected: true };
+
+      setItemList((prevList) =>
+        prevList.map((item, indexs) => (indexs === index ? updatedItem : item))
+      );
+    }
   };
 
   useEffect(() => {
     console.log("Prias current selected : ", selected);
     console.log("Prias cell Details : ", cellDetails);
+    if (selected.length !== 0 && selected[selected.length - 1].name) {
+      setShelfName(selected[selected.length - 1].name);
+    } else {
+      setShelfName("");
+    }
   }, [selected]);
 
   useEffect(() => {
-    console.log("Prias mode : ", mode);
+    //console.log("Prias mode : ", mode);
   }, [mode]);
+
+  useEffect(() => {
+    console.log(itemList), [itemList];
+  });
 
   return {
     cellDetails,
@@ -328,6 +434,10 @@ const useAisle = () => {
     confirmTrigger,
     mode,
     objectText,
+    itemList,
+    confirmItem,
+    shelfName,
+    selectItem,
   };
 };
 
