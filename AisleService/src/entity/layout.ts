@@ -18,7 +18,7 @@ export default class Layout {
     pos_x!: number;
 
     @Column()
-    pox_y!: number;
+    pos_y!: number;
 
     @Column()
     row_span!: number;
@@ -32,7 +32,7 @@ export default class Layout {
     })
     type!: LAYOUT_TYPE;
 
-    @ManyToOne(() => Store, store => store.id)
+    @ManyToOne(() => Store, store => store.id, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'store_id' })
     store!: Store;
 
