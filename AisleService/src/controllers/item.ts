@@ -79,7 +79,7 @@ export const deleteItem = async (req: Request, res: Response) => {
 }
 
 // Get stats about items
-// TODO : get only item that match ownerId (waiting for StoreService)
+// TODO : get only item that match ownerId (direct query using store entity)
 export const getItemStats = async (req: Request, res: Response) => {
     const items = await getRepository(Item).find({
         select: ["id", "title", "search_count", "layout_id"]
@@ -89,7 +89,7 @@ export const getItemStats = async (req: Request, res: Response) => {
 
 
 // Get stats about a item
-// TODO : get only item that match ownerId (waiting for StoreService)
+// TODO : get only item that match ownerId (direct query using store entity)
 export const getItemStatsById = async (req: Request, res: Response) => {
     const id = Number(req.params.id);  // Convert the ID from string to number
     if (isNaN(id)) {

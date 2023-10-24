@@ -14,10 +14,10 @@ export default class Store {
     @Column({ default: '' })
     description?: string;
 
-    @Column({ type: 'float' })
+    @Column()
     size_x!: number;
 
-    @Column({ type: 'float' })
+    @Column()
     size_y!: number;
 
     @Column()

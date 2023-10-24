@@ -43,7 +43,7 @@ export default class Layout {
 export interface ILayout {
     id: number;
     pos_x: number;
-    pox_y: number;
+    pos_y: number;
     row_span: number;
     col_span: number;
     type: LAYOUT_TYPE;
