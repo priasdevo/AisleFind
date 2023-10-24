@@ -1,7 +1,6 @@
 export interface IUserContext {
   email: string;
-  setEmail: (email: string) => void;
   isLogin: boolean;
-  setIsLogin: (isLogin: boolean) => void;
+  userId: string;
   logout: () => void;
 }

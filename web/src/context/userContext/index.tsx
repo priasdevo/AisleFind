@@ -9,6 +9,7 @@ export const useUser = () => useContext(UserContext)
 export const UserProvider = ({children}: React.PropsWithChildren<{}>) => {
   const [email, setEmail] = useState('')
   const [isLogin, setIsLogin] = useState(false)
+  const [userId, setUserId] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -23,9 +24,11 @@ export const UserProvider = ({children}: React.PropsWithChildren<{}>) => {
           },
         })
         const data = await res.json();
+        console.log("data: ",data)
         if(data.success) {
           setEmail(data.username);
           setIsLogin(true);
+          setUserId(data.id)
         }
       }
       catch (err) {
@@ -40,11 +43,12 @@ export const UserProvider = ({children}: React.PropsWithChildren<{}>) => {
   const logout = () => {
     localStorage.removeItem('token');
     setEmail('');
+    setUserId('');
     setIsLogin(false);
   }
 
   return (
-    <UserContext.Provider value={{email, setEmail, isLogin, setIsLogin, logout}}>
+    <UserContext.Provider value={{email, isLogin, userId, logout}}>
       {children}
     </UserContext.Provider>
   )
