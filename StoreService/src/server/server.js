@@ -1,13 +1,17 @@
 const grpc = require("@grpc/grpc-js");
-const PROTO_PATH = "../SharedFile/proto/services/news/v1/news_service.proto";
+// const NEWS_PROTO_PATH = "../SharedFile/proto/services/news/v1/news_service.proto";
+const STORE_PROTO_PATH = "../SharedFile/proto/services/store/v2/store_service.proto";
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
-const { connectToDatabase } = require('../utils/db');
+const { connectToDatabase } = require('../utils/db_pgp');
 // Connect to the database
 connectToDatabase();
 
 var protoLoader = require("@grpc/proto-loader");
+// Import the controllers
+// const newsController = require('../controllers/newsController'); 
+const storeController = require('../controllers/storeController'); 
 
 
 const options = {
@@ -17,43 +21,26 @@ const options = {
   defaults: true,
   oneofs: true,
 };
-var packageDefinition = protoLoader.loadSync(PROTO_PATH, options);
-const newsProto = grpc.loadPackageDefinition(packageDefinition);
+// var packageDefinitionNews = protoLoader.loadSync(NEWS_PROTO_PATH, options);
+// const newsProto = grpc.loadPackageDefinition(packageDefinitionNews);
+
+var packageDefinitionStore = protoLoader.loadSync(STORE_PROTO_PATH, options);
+const storeProto = grpc.loadPackageDefinition(packageDefinitionStore);
 
 const server = new grpc.Server();
-let news = [
-  { id: "1", title: "Note 1", body: "Content 1", postImage: "Post image 1" },
-  { id: "2", title: "Note 2", body: "Content 2 test", postImage: "Post image 2" },
-];
 
-//TODO : refactor these into  route and controller-like files 
-server.addService(newsProto.NewsService.service, {
-  getAllNews: (_, callback) => {
-    callback(null, { news: news });
-  },
-  getNews: (_, callback) => {
-    const newsId = _.request.id;
-    const newsItem = news.find(({ id }) => newsId == id);
-    callback(null, newsItem);
-  },
-  addNews: (call, callback) => {
-    const _news = { id: Date.now(), ...call.request };
-    news.push(_news);
-    callback(null, _news);
-  },
-  editNews: (_, callback) => {
-    const newsId = _.request.id;
-    const newsItem = news.find(({ id }) => newsId == id);
-    newsItem.body = _.request.body;
-    newsItem.postImage = _.request.postImage;
-    newsItem.title = _.request.title;
-    callback(null, newsItem);
-  },
-  deleteNews: (_, callback) => {
-    const newsId = _.request.id;
-    news = news.filter(({ id }) => id !== newsId);
-    callback(null, {});
-  },
+// news service proto route
+// server.addService(newsProto.NewsService.service, {
+//   getAllNews: newsController.getAllNews,
+//   getNews: newsController.getNews,
+//   addNews: newsController.addNews,
+//   editNews: newsController.editNews,
+//   deleteNews: newsController.deleteNews,
+// });
+
+// store service proto route
+server.addService(storeProto.StoreService.service, {
+  getStoresList: storeController.getStoresList,
 });
 
 server.bindAsync(

@@ -1,12 +1,13 @@
 const { createConnection } = require("typeorm");
 
 // Require the schemas
-const StoreSchema = require("../entities/store");
-const LayoutSchema = require("../entities/layout");
+const StoreSchema = require("../entities/Store");
+const LayoutSchema = require("../entities/Layout");
 
 const connectToDatabase = async () => {
   try {
     await createConnection({
+      name: "postgresConnection",
       type: "postgres",
       host: process.env.DB_HOST,
       port: process.env.DB_PORT, // Convert the port to a number

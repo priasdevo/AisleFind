@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+message Store {
+    int32 id = 1;
+    string title = 2;
+    string description = 3;
+    int32 size_x = 4; // grid size
+    int32 size_y = 5; 
+    string owner_id = 6;
+}
+// The service definition for Store Management.
+service StoreService {
+    rpc GetStoresList(GetStoresListRequest) returns (GetStoresListResponse) {}; //List own store for owner, list all store for customer
+}
+
+message GetStoresListRequest {}
+
+message GetStoresListResponse {
+    repeated Store stores = 1;
+}

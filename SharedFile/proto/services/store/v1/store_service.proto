@@ -1,18 +1,5 @@
 syntax = "proto3";
 
-package store;
-
-// The service definition for Store Management.
-service StoreService {
-    rpc CreateStore(CreateStoreRequest) returns (CreateStoreResponse);
-    rpc UpdateStore(UpdateStoreRequest) returns (UpdateStoreResponse);
-    rpc DeleteStore(DeleteStoreRequest) returns (DeleteStoreResponse);
-    rpc GetStore(GetStoreRequest) returns (GetStoreResponse);
-    rpc GetStoreLayout(GetStoreLayoutRequest) returns (GetStoreLayoutResponse);
-    rpc ListStores(ListStoresRequest) returns (ListStoresResponse); //List own store for owner, list all store for customer
-    rpc ManageLayout(ManageLayoutRequest) returns (ManageLayoutResponse);
-}
-
 message Store {
     int32 id = 1;
     string title = 2;
@@ -21,6 +8,18 @@ message Store {
     int32 size_y = 5; 
     string owner_id = 6;
 }
+// The service definition for Store Management.
+service StoreService {
+    rpc CreateStore(CreateStoreRequest) returns (CreateStoreResponse);
+    rpc UpdateStore(UpdateStoreRequest) returns (UpdateStoreResponse);
+    rpc DeleteStore(DeleteStoreRequest) returns (DeleteStoreResponse);
+    rpc GetStore(GetStoreRequest) returns (GetStoreResponse);
+    rpc GetStoreLayout(GetStoreLayoutRequest) returns (GetStoreLayoutResponse);
+    rpc GetStoresList(GetStoresListRequest) returns (GetStoresListResponse); //List own store for owner, list all store for customer
+    rpc ManageLayout(ManageLayoutRequest) returns (ManageLayoutResponse);
+}
+
+
 
 message Layout {
     int32 id = 1;
@@ -80,9 +79,9 @@ message GetStoreLayoutResponse {
 }
 
 
-message ListStoresRequest {}
+message GetStoresListRequest {}
 
-message ListStoresResponse {
+message GetStoresListResponse {
     repeated Store stores = 1;
 }
 
