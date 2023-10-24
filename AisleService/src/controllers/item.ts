@@ -81,9 +81,16 @@ export const deleteItem = async (req: Request, res: Response) => {
 // Get stats about items
 // TODO : get only item that match ownerId (direct query using store entity)
 export const getItemStats = async (req: Request, res: Response) => {
-    const items = await getRepository(Item).find({
-        select: ["id", "title", "search_count", "layout_id"]
-    });
+    const ownerId = req.user?.id;
+    // each item has a store_id, each store has an owner_id
+    // query all items that has store with owner_id = ownerId
+    // join item and store table
+    console.log("querying items for owner : ", ownerId);
+    const items = await getRepository(Item).createQueryBuilder("item")
+        .innerJoin("item.store", "store")
+        .where("store.owner_id = :ownerId", { ownerId })
+        .select(["item.id", "item.title", "item.search_count", "item.layout_id"])
+        .getMany();
     res.json(items);
 }
 
