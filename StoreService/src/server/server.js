@@ -12,7 +12,7 @@ var protoLoader = require("@grpc/proto-loader");
 // Import the controllers
 // const newsController = require('../controllers/newsController'); 
 const storeController = require('../controllers/storeController'); 
-
+const layoutController = require('../controllers/layoutController'); 
 
 const options = {
   keepCase: true,
@@ -40,14 +40,17 @@ const server = new grpc.Server();
 
 // store service proto route
 server.addService(storeProto.StoreService.service, {
-  CreateStore: storeController.CreateStore,
-  UpdateStore: storeController.UpdateStore,
-  DeleteStore: storeController.DeleteStore,
-  GetStore: storeController.GetStore,
-  GetStoreLayout: storeController.GetStoreLayout, //TODO : waiting for Layout service
-  GetStoresList: storeController.GetStoresList,
-  ManageLayout: storeController.ManageLayout, //TODO : waiting for Layout service
-});
+  CreateStore: storeController.createStore,
+  UpdateStore: storeController.updateStore,
+  DeleteStore: storeController.deleteStore,
+  GetStore: storeController.getStore,
+  GetStoresList: storeController.getStoresList,
+  //layout controller
+  GetStoreLayout: layoutController.getStoreLayout, 
+  AddLayout: layoutController.addLayout, 
+  UpdateLayout: layoutController.updateLayout, 
+  DeleteLayout: layoutController.deleteLayout, 
+})
 
 server.bindAsync(
   "127.0.0.1:50051",

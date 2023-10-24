@@ -8,18 +8,6 @@ message Store {
     int32 size_y = 5; 
     string owner_id = 6;
 }
-// The service definition for Store Management.
-service StoreService {
-    rpc CreateStore(CreateStoreRequest) returns (CreateStoreResponse);
-    rpc UpdateStore(UpdateStoreRequest) returns (UpdateStoreResponse);
-    rpc DeleteStore(DeleteStoreRequest) returns (DeleteStoreResponse);
-    rpc GetStore(GetStoreRequest) returns (GetStoreResponse);
-    rpc GetStoreLayout(GetStoreLayoutRequest) returns (GetStoreLayoutResponse);
-    rpc GetStoresList(GetStoresListRequest) returns (GetStoresListResponse); //List own store for owner, list all store for customer
-    rpc ManageLayout(ManageLayoutRequest) returns (ManageLayoutResponse);
-}
-
-
 
 message Layout {
     int32 id = 1;
@@ -36,6 +24,20 @@ enum LayoutType {
     SHELF = 1;
     CASHIER = 2;
     DOOR = 3;
+}
+
+service StoreService {
+    // store table
+    rpc CreateStore(CreateStoreRequest) returns (CreateStoreResponse);
+    rpc UpdateStore(UpdateStoreRequest) returns (UpdateStoreResponse);
+    rpc DeleteStore(DeleteStoreRequest) returns (DeleteStoreResponse);
+    rpc GetStore(GetStoreRequest) returns (GetStoreResponse);
+    rpc GetStoresList(GetStoresListRequest) returns (GetStoresListResponse); // owner get own, customer get all
+    // layout table
+    rpc GetStoreLayout(GetStoreLayoutRequest) returns (GetStoreLayoutResponse);
+    rpc AddLayout(AddLayoutRequest) returns (AddLayoutResponse);
+    rpc UpdateLayout(UpdateLayoutRequest) returns (UpdateLayoutResponse);
+    rpc DeleteLayout(DeleteLayoutRequest) returns (DeleteLayoutResponse);
 }
 
 message CreateStoreRequest {
@@ -78,18 +80,33 @@ message GetStoreLayoutResponse {
     repeated Layout layouts = 1;
 }
 
-
 message GetStoresListRequest {}
 
 message GetStoresListResponse {
     repeated Store stores = 1;
 }
 
-message ManageLayoutRequest {
+message AddLayoutRequest {
     Layout layout = 1;
-    string operation = 2; // e.g., "ADD", "UPDATE", "DELETE"
 }
 
-message ManageLayoutResponse {
+message AddLayoutResponse {
+    int32 layout_id = 1; // The ID of the added layout
+    string status = 2; // e.g., "SUCCESS", "ERROR"
+}
+
+message UpdateLayoutRequest {
+    Layout layout = 1;
+}
+
+message UpdateLayoutResponse {
+    string status = 1; // e.g., "SUCCESS", "ERROR"
+}
+
+message DeleteLayoutRequest {
+    int32 layout_id = 1;
+}
+
+message DeleteLayoutResponse {
     string status = 1; // e.g., "SUCCESS", "ERROR"
 }
