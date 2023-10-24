@@ -107,6 +107,13 @@ export const getItemStatsById = async (req: Request, res: Response) => {
         select: ["id", "title", "search_count", "layout_id"]
     });
     if (!item) return res.status(404).json({ message: 'Item not found' });
+    const ownerId = req.user?.id.toString();
+    // each item has a store_id, each store has an owner_id
+    // if item.store.owner_id != ownerId, return forbidden
+    if(item.store.owner_id != ownerId){
+        return res.status(403).json({ message: 'Forbidden' });
+    }
+    
     res.json(item);
 }
 
@@ -114,6 +121,15 @@ export const getItemStatsById = async (req: Request, res: Response) => {
 // Get items by aisle
 export const getItemByAisle = async (req: Request, res: Response) => {
     //TODO : waiting for Store service
-    const aisle = req.query.aisle;
-    res.json({ message: `Returning items for aisle ${aisle} //WIP, waiting for Store service`, data: [] });
+    const aisle = req.query.layout_id;
+    // parse aisle to number
+    if (isNaN(Number(aisle))) {
+        return res.status(400).json({ message: 'Invalid aisle ID provided' });
+    }
+    const aisleId = Number(aisle);
+    const item = await getRepository(Item).find({
+        where: { layout_id: aisleId },
+        select: ["id", "title", "description", "layout_id"]
+    });
+    res.json(item);
 }
