@@ -33,11 +33,18 @@ export const UserProvider = ({children}: React.PropsWithChildren<{}>) => {
       }
     }
 
-    validateToken();
+    if(token)
+      validateToken();
   }, [])
 
+  const logout = () => {
+    localStorage.removeItem('token');
+    setEmail('');
+    setIsLogin(false);
+  }
+
   return (
-    <UserContext.Provider value={{email, setEmail, isLogin, setIsLogin}}>
+    <UserContext.Provider value={{email, setEmail, isLogin, setIsLogin, logout}}>
       {children}
     </UserContext.Provider>
   )
