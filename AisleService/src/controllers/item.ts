@@ -49,7 +49,7 @@ export const searchItem = async (req: Request, res: Response) => {
 
 export const addItem = async (req: Request, res: Response) => {
     let body: IItem = req.body;
-    body.searchCount = req.body.searchCount || 0;
+    body.search_count = req.body.searchCount || 0;
     const newItem = getRepository(Item).create(req.body);
     const result = await getRepository(Item).save(newItem);
     res.status(201).json(result);
