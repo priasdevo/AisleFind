@@ -18,7 +18,7 @@ export default class Layout {
     pos_x!: number;
 
     @Column()
-    pox_y!: number;
+    pos_y!: number;
 
     @Column()
     row_span!: number;

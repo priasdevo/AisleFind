@@ -1,7 +1,7 @@
 const grpc = require("@grpc/grpc-js");
 const STORE_PROTO_PATH = "../SharedFile/proto/services/store/v1/store_service.proto";
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const { connectToDatabase } = require('../utils/db_pgp');
 // Connect to the database
