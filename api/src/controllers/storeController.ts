@@ -2,10 +2,17 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { Request, Response } from 'express';
 import path from 'path';
+import { Metadata } from '@grpc/grpc-js';
 
-// const PROTO_PATH = path.join(__dirname, '..', '..', 'public', 'gRPC', 'proto', 'helloworld.proto'); // Update with actual path
+function generateMetadata(req: Request): Metadata {
+    const metadata = new Metadata();
+    const bearerToken = req.headers.authorization; // assuming the token is sent in the Authorization header
+    if (bearerToken) {
+        metadata.add('authorization', bearerToken);
+    }
+    return metadata;
+}
 const PROTO_PATH = path.join(__dirname, '..', '..', '..', 'SharedFile', 'proto', 'services', 'store', 'v1', 'store_service.proto'); // Update with actual path
-// const PROTO_PATH = '../../public/gRPC/proto/helloworld.proto'
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
@@ -33,7 +40,8 @@ export const handleGetStoresList = () => {
 }
 export const handleCreateStore = () => {
   return async (req: Request, res: Response) => {
-    client.CreateStore(req.body, (error: { message: any; }, response: any) => {
+    const requestBody = { store: {...req.body} };
+    client.CreateStore(requestBody, (error: { message: any; }, response: any) => {
       if (!error) {
         res.json(response);
       } else {
@@ -45,7 +53,8 @@ export const handleCreateStore = () => {
 
 export const handleUpdateStore = () => {
   return async (req: Request, res: Response) => {
-    client.UpdateStore(req.body, (error: { message: any; }, response: any) => {
+    const requestBody = { store: {...req.body} };
+    client.UpdateStore(requestBody, (error: { message: any; }, response: any) => {
       if (!error) {
         res.json(response);
       } else {
@@ -56,7 +65,8 @@ export const handleUpdateStore = () => {
 }
 export const handleDeleteStore = () => {
   return async (req: Request, res: Response) => {
-    client.DeleteStore(req.body, (error: { message: any; }, response: any) => {
+    const requestBody = { id: req.params.id };
+    client.DeleteStore(requestBody, (error: { message: any; }, response: any) => {
       if (!error) {
         res.json(response);
       } else {
