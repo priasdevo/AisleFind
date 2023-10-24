@@ -18,14 +18,14 @@ export default class Item {
     @Column({ default: 0 })
     search_count!: number;
 
-    @ManyToOne(() => Layout, layout => layout.id)
+    @ManyToOne(() => Layout, layout => layout.id, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'layout_id' })
     layout!: Layout;
 
     @Column()
     layout_id!: number;
 
-    @ManyToOne(() => Store, store => store.id)
+    @ManyToOne(() => Store, store => store.id, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'store_id' })
     store!: Store;
 
