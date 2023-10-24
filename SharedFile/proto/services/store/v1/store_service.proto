@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+message Store {
+    int32 id = 1;
+    string title = 2;
+    string description = 3;
+    int32 size_x = 4; // grid size
+    int32 size_y = 5; 
+    string owner_id = 6;
+}
+
+message Layout {
+    int32 id = 1;
+    int32 pos_x = 2; // grid position
+    int32 pos_y = 3;
+    int32 row_span = 4; // grid span size
+    int32 col_span = 5;
+    LayoutType type = 6;
+    int32 store_id = 7;
+}
+
+enum LayoutType {
+    UNKNOWN = 0;
+    SHELF = 1;
+    CASHIER = 2;
+    DOOR = 3;
+}
+
+service StoreService {
+    // store table
+    rpc CreateStore(CreateStoreRequest) returns (CreateStoreResponse);
+    rpc UpdateStore(UpdateStoreRequest) returns (UpdateStoreResponse);
+    rpc DeleteStore(DeleteStoreRequest) returns (DeleteStoreResponse);
+    rpc GetStore(GetStoreRequest) returns (GetStoreResponse);
+    rpc GetStoresList(GetStoresListRequest) returns (GetStoresListResponse); // owner get own, customer get all
+    // layout table
+    rpc GetStoreLayout(GetStoreLayoutRequest) returns (GetStoreLayoutResponse);
+    rpc AddLayout(AddLayoutRequest) returns (AddLayoutResponse);
+    rpc UpdateLayout(UpdateLayoutRequest) returns (UpdateLayoutResponse);
+    rpc DeleteLayout(DeleteLayoutRequest) returns (DeleteLayoutResponse);
+}
+
+message CreateStoreRequest {
+    Store store = 1;
+}
+
+message CreateStoreResponse {
+    int32 id = 1;
+}
+
+message UpdateStoreRequest {
+    Store store = 1;
+}
+
+message UpdateStoreResponse {
+    string status = 1; // e.g., "SUCCESS", "ERROR"
+}
+
+message DeleteStoreRequest {
+    int32 id = 1;
+}
+
+message DeleteStoreResponse {
+    string status = 1; // e.g., "SUCCESS", "ERROR"
+}
+
+message GetStoreRequest {
+    int32 id = 1;
+}
+
+message GetStoreResponse {
+    Store store = 1;
+}
+
+message GetStoreLayoutRequest {
+    int32 id = 1;
+}
+
+message GetStoreLayoutResponse {
+    repeated Layout layouts = 1;
+}
+
+message GetStoresListRequest {}
+
+message GetStoresListResponse {
+    repeated Store stores = 1;
+}
+
+message AddLayoutRequest {
+    Layout layout = 1;
+}
+
+message AddLayoutResponse {
+    int32 layout_id = 1; // The ID of the added layout
+    string status = 2; // e.g., "SUCCESS", "ERROR"
+}
+
+message UpdateLayoutRequest {
+    Layout layout = 1;
+}
+
+message UpdateLayoutResponse {
+    string status = 1; // e.g., "SUCCESS", "ERROR"
+}
+
+message DeleteLayoutRequest {
+    int32 layout_id = 1;
+}
+
+message DeleteLayoutResponse {
+    string status = 1; // e.g., "SUCCESS", "ERROR"
+}
