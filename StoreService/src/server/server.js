@@ -1,6 +1,6 @@
 const grpc = require("@grpc/grpc-js");
 // const NEWS_PROTO_PATH = "../SharedFile/proto/services/news/v1/news_service.proto";
-const STORE_PROTO_PATH = "../SharedFile/proto/services/store/v2/store_service.proto";
+const STORE_PROTO_PATH = "../SharedFile/proto/services/store/v1/store_service.proto";
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
@@ -40,7 +40,13 @@ const server = new grpc.Server();
 
 // store service proto route
 server.addService(storeProto.StoreService.service, {
-  getStoresList: storeController.getStoresList,
+  CreateStore: storeController.CreateStore,
+  UpdateStore: storeController.UpdateStore,
+  DeleteStore: storeController.DeleteStore,
+  GetStore: storeController.GetStore,
+  GetStoreLayout: storeController.GetStoreLayout, //TODO : waiting for Layout service
+  GetStoresList: storeController.GetStoresList,
+  ManageLayout: storeController.ManageLayout, //TODO : waiting for Layout service
 });
 
 server.bindAsync(
