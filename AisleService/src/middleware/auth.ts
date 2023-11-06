@@ -19,7 +19,6 @@ export const protect = async(req:Request, res:Response, next:NextFunction)=>{
 
   try {
     //verify token
-    // TODO : send request to userService to verify
     const service_URL = process.env.USER_SERVICE_URL;
     try {
         const response = await axios({

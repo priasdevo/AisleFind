@@ -15,6 +15,8 @@ const storeRouter = express.Router();
 
 // Get the list of stores
 storeRouter.get('/', handleGetStoresList());
+// Get a specific store
+storeRouter.get('/:id', handleGetStore());
 // Add a new store
 storeRouter.post('/', handleCreateStore());
 // Update a store
@@ -24,8 +26,6 @@ storeRouter.delete('/:id', handleDeleteStore());
 
 // layout
 
-// Get a specific store
-storeRouter.get('/:id', handleGetStore());
 // Get a store layout
 storeRouter.get('/:id/layout', handleGetStoreLayout());
 // Add a new layout to a store

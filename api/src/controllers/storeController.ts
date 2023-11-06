@@ -28,9 +28,11 @@ const client = new serviceProto.StoreService(
   process.env.STORE_SERVICE_URL || "localhost:50051", 
   grpc.credentials.createInsecure()
 );
+
 export const handleGetStoresList = () => {
   return async (req: Request, res: Response) => {
-    client.GetStoresList(req.body, (error: { message: any; }, response: any) => {
+    const metadata = generateMetadata(req);
+    client.GetStoresList(req.body, metadata, (error: { message: any; }, response: any) => {
       if (!error) {
         res.json(response);
       } else {
@@ -38,11 +40,13 @@ export const handleGetStoresList = () => {
       }
     });
   };
-}
+};
+
 export const handleCreateStore = () => {
   return async (req: Request, res: Response) => {
     const requestBody = { store: {...req.body} };
-    client.CreateStore(requestBody, (error: { message: any; }, response: any) => {
+    const metadata = generateMetadata(req);
+    client.CreateStore(requestBody, metadata, (error: { message: any; }, response: any) => {
       if (!error) {
         res.json(response);
       } else {
@@ -50,12 +54,13 @@ export const handleCreateStore = () => {
       }
     });
   };
-}
+};
 
 export const handleUpdateStore = () => {
   return async (req: Request, res: Response) => {
     const requestBody = { store: {id: req.params.id, ...req.body} };
-    client.UpdateStore(requestBody, (error: { message: any; }, response: any) => {
+    const metadata = generateMetadata(req);
+    client.UpdateStore(requestBody, metadata, (error: { message: any; }, response: any) => {
       if (!error) {
         res.json(response);
       } else {
@@ -63,11 +68,13 @@ export const handleUpdateStore = () => {
       }
     });
   };
-}
+};
+
 export const handleDeleteStore = () => {
   return async (req: Request, res: Response) => {
     const requestBody = { id: req.params.id };
-    client.DeleteStore(requestBody, (error: { message: any; }, response: any) => {
+    const metadata = generateMetadata(req);
+    client.DeleteStore(requestBody, metadata, (error: { message: any; }, response: any) => {
       if (!error) {
         res.json(response);
       } else {
@@ -75,11 +82,13 @@ export const handleDeleteStore = () => {
       }
     });
   };
-}
+};
+
 export const handleGetStore = () => {
   return async (req: Request, res: Response) => {
-    const requestBody = { ...req.body, id: req.params.id };
-    client.GetStore(requestBody, (error: { message: any; }, response: any) => {
+    const requestBody = { id: req.params.id };
+    const metadata = generateMetadata(req);
+    client.GetStore(requestBody, metadata, (error: { message: any; }, response: any) => {
       if (!error) {
         res.json(response);
       } else {
@@ -87,56 +96,62 @@ export const handleGetStore = () => {
       }
     });
   };
-}
-//layout
+};
+
+// Layout functions:
+
 export const handleGetStoreLayout = () => {
   return async (req: Request, res: Response) => {
-      const requestBody = { ...req.body, id: req.params.id };
-      client.GetStoreLayout(requestBody, (error: { message: any; }, response: any) => {
-          if (!error) {
-              res.json(response);
-          } else {
-              res.status(500).send(error.message);
-          }
-      });
+    const requestBody = { id: req.params.id };
+    const metadata = generateMetadata(req);
+    client.GetStoreLayout(requestBody, metadata, (error: { message: any; }, response: any) => {
+      if (!error) {
+        res.json(response);
+      } else {
+        res.status(500).send(error.message);
+      }
+    });
   };
-}
+};
 
 export const handleAddLayout = () => {
   return async (req: Request, res: Response) => {
-      const requestBody = { layout: {...req.body, store_id: req.params.id } };
-      client.AddLayout(requestBody, (error: { message: any; }, response: any) => {
-          if (!error) {
-              res.json(response);
-          } else {
-              res.status(500).send(error.message);
-          }
-      });
+    const requestBody = { layout: {...req.body, store_id: req.params.id } };
+    const metadata = generateMetadata(req);
+    client.AddLayout(requestBody, metadata, (error: { message: any; }, response: any) => {
+      if (!error) {
+        res.json(response);
+      } else {
+        res.status(500).send(error.message);
+      }
+    });
   };
-}
+};
 
 export const handleUpdateLayout = () => {
   return async (req: Request, res: Response) => {
-      const requestBody = { layout:{...req.body, store_id: req.params.id, id: req.params.layoutId} };
-      client.UpdateLayout(requestBody, (error: { message: any; }, response: any) => {
-          if (!error) {
-              res.json(response);
-          } else {
-              res.status(500).send(error.message);
-          }
-      });
+    const requestBody = { layout: {...req.body, store_id: req.params.id, id: req.params.layoutId} };
+    const metadata = generateMetadata(req);
+    client.UpdateLayout(requestBody, metadata, (error: { message: any; }, response: any) => {
+      if (!error) {
+        res.json(response);
+      } else {
+        res.status(500).send(error.message);
+      }
+    });
   };
-}
+};
 
 export const handleDeleteLayout = () => {
   return async (req: Request, res: Response) => {
-      const requestBody = { ...req.body, store_id: req.params.id, layout_id: req.params.layoutId };
-      client.DeleteLayout(requestBody, (error: { message: any; }, response: any) => {
-          if (!error) {
-              res.json(response);
-          } else {
-              res.status(500).send(error.message);
-          }
-      });
+    const requestBody = { store_id: req.params.id, layout_id: req.params.layoutId };
+    const metadata = generateMetadata(req);
+    client.DeleteLayout(requestBody, metadata, (error: { message: any; }, response: any) => {
+      if (!error) {
+        res.json(response);
+      } else {
+        res.status(500).send(error.message);
+      }
+    });
   };
-}
+};
