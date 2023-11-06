@@ -13,12 +13,14 @@
   "license": "ISC",
   "dependencies": {
     "@grpc/grpc-js": "^1.9.7",
+    "consul": "^1.2.0",
     "dotenv": "^16.3.1",
     "pg": "^8.11.3",
     "pg-promise": "^11.5.4",
     "typeorm": "^0.3.17"
   },
   "devDependencies": {
+    "@types/consul": "^0.40.2",
     "nodemon": "^3.0.1"
   }
 }
