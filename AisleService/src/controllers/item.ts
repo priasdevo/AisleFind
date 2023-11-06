@@ -104,24 +104,32 @@ export const getItemStatsById = async (req: Request, res: Response) => {
     }
     const item = await getRepository(Item).findOne({
         where: { id },
-        select: ["id", "title", "search_count", "layout_id"]
+        relations: ['store'], // Include the store relation
+        select: ["id", "title", "search_count", "layout_id", "store"] // Ensure store is included
     });
-    if (!item) return res.status(404).json({ message: 'Item not found' });
+    if (!item) {
+        return res.status(404).json({ message: 'Item not found' });
+    }
+    
     const ownerId = req.user?.id.toString();
-    // each item has a store_id, each store has an owner_id
-    // if item.store.owner_id != ownerId, return forbidden
-    if(item.store.owner_id != ownerId){
+    console.log("Test item : ", item);
+    console.log("Test item.store : ", item.store);
+
+    // Assuming the store entity has owner_id and you have loaded it correctly
+    if (item.store.owner_id != ownerId) {
         return res.status(403).json({ message: 'Forbidden' });
     }
     
-    res.json(item);
-}
+    // Remove store information before sending to client if it's not needed
+    const { store, ...itemWithoutStore } = item;
+    res.json(itemWithoutStore);
+};
+
 
 
 // Get items by aisle
 export const getItemByAisle = async (req: Request, res: Response) => {
-    //TODO : waiting for Store service
-    const aisle = req.query.layout_id;
+    const aisle = req.params.layout_id;
     // parse aisle to number
     if (isNaN(Number(aisle))) {
         return res.status(400).json({ message: 'Invalid aisle ID provided' });
