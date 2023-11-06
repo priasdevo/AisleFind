@@ -79,7 +79,6 @@ export const deleteItem = async (req: Request, res: Response) => {
 }
 
 // Get stats about items
-// TODO : get only item that match ownerId (direct query using store entity)
 export const getItemStats = async (req: Request, res: Response) => {
     const ownerId = req.user?.id;
     // each item has a store_id, each store has an owner_id
@@ -96,7 +95,6 @@ export const getItemStats = async (req: Request, res: Response) => {
 
 
 // Get stats about a item
-// TODO : get only item that match ownerId (direct query using store entity)
 export const getItemStatsById = async (req: Request, res: Response) => {
     const id = Number(req.params.id);  // Convert the ID from string to number
     if (isNaN(id)) {
