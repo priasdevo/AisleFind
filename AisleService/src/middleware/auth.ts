@@ -36,11 +36,6 @@ export const protect = async(req:Request, res:Response, next:NextFunction)=>{
         }
         req.user = response.data;
 
-        //TODO : delete when userService is return id and role (mock for test)
-        req.user!.id = new mongoose.Types.ObjectId();
-        // req.user!.role = 'customer';
-        req.user!.role = 'owner';
-
     } catch (error) {
         console.log("Error : ", error);
         res.status(500).send(`Error forwarding to Service at ${service_URL}/auth/user`);

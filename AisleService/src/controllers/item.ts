@@ -79,17 +79,22 @@ export const deleteItem = async (req: Request, res: Response) => {
 }
 
 // Get stats about items
-// TODO : get only item that match ownerId (direct query using store entity)
 export const getItemStats = async (req: Request, res: Response) => {
-    const items = await getRepository(Item).find({
-        select: ["id", "title", "search_count", "layout_id"]
-    });
+    const ownerId = req.user?.id;
+    // each item has a store_id, each store has an owner_id
+    // query all items that has store with owner_id = ownerId
+    // join item and store table
+    console.log("querying items for owner : ", ownerId);
+    const items = await getRepository(Item).createQueryBuilder("item")
+        .innerJoin("item.store", "store")
+        .where("store.owner_id = :ownerId", { ownerId })
+        .select(["item.id", "item.title", "item.search_count", "item.layout_id"])
+        .getMany();
     res.json(items);
 }
 
 
 // Get stats about a item
-// TODO : get only item that match ownerId (direct query using store entity)
 export const getItemStatsById = async (req: Request, res: Response) => {
     const id = Number(req.params.id);  // Convert the ID from string to number
     if (isNaN(id)) {
@@ -97,16 +102,40 @@ export const getItemStatsById = async (req: Request, res: Response) => {
     }
     const item = await getRepository(Item).findOne({
         where: { id },
-        select: ["id", "title", "search_count", "layout_id"]
+        relations: ['store'], // Include the store relation
+        select: ["id", "title", "search_count", "layout_id", "store"] // Ensure store is included
     });
-    if (!item) return res.status(404).json({ message: 'Item not found' });
-    res.json(item);
-}
+    if (!item) {
+        return res.status(404).json({ message: 'Item not found' });
+    }
+    
+    const ownerId = req.user?.id.toString();
+    console.log("Test item : ", item);
+    console.log("Test item.store : ", item.store);
+
+    // Assuming the store entity has owner_id and you have loaded it correctly
+    if (item.store.owner_id != ownerId) {
+        return res.status(403).json({ message: 'Forbidden' });
+    }
+    
+    // Remove store information before sending to client if it's not needed
+    const { store, ...itemWithoutStore } = item;
+    res.json(itemWithoutStore);
+};
+
 
 
 // Get items by aisle
 export const getItemByAisle = async (req: Request, res: Response) => {
-    //TODO : waiting for Store service
-    const aisle = req.query.aisle;
-    res.json({ message: `Returning items for aisle ${aisle} //WIP, waiting for Store service`, data: [] });
+    const aisle = req.params.layout_id;
+    // parse aisle to number
+    if (isNaN(Number(aisle))) {
+        return res.status(400).json({ message: 'Invalid aisle ID provided' });
+    }
+    const aisleId = Number(aisle);
+    const item = await getRepository(Item).find({
+        where: { layout_id: aisleId },
+        select: ["id", "title", "description", "layout_id"]
+    });
+    res.json(item);
 }
