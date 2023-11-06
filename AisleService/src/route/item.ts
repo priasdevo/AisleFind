@@ -4,7 +4,7 @@ import { searchItem, findItem, addItem, editItem, deleteItem, getItemStats, getI
 
 const router = express.Router()
 
-router.get('/aisle/:id', getItemByAisle)
+router.get('/aisle/:layout_id', getItemByAisle)
 router.get('/stats/:id', protect, isOwner, getItemStatsById) 
 router.get('/stats/', protect, isOwner, getItemStats)
 
