@@ -1,8 +1,9 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { Request, Response } from 'express';
-import path from 'path';
 import { Metadata } from '@grpc/grpc-js';
+import dotenv from "dotenv";
+import path from "path";
 
 function generateMetadata(req: Request): Metadata {
     const metadata = new Metadata();
@@ -22,9 +23,9 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   oneofs: true,
 });
 const serviceProto: any = grpc.loadPackageDefinition(packageDefinition);
-
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 const client = new serviceProto.StoreService(
-  'localhost:50051', // Assuming your gRPC server is running on localhost on port 50051
+  process.env.STORE_SERVICE_URL || "localhost:50051", 
   grpc.credentials.createInsecure()
 );
 export const handleGetStoresList = () => {
@@ -53,7 +54,7 @@ export const handleCreateStore = () => {
 
 export const handleUpdateStore = () => {
   return async (req: Request, res: Response) => {
-    const requestBody = { store: {...req.body} };
+    const requestBody = { store: {id: req.params.id, ...req.body} };
     client.UpdateStore(requestBody, (error: { message: any; }, response: any) => {
       if (!error) {
         res.json(response);
