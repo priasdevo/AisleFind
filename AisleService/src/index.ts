@@ -10,10 +10,7 @@ const app: Express = express();
 app.use(express.json());
 app.use('/items', itemRouter)
 
-
-
 const port = process.env.PORT;
-
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Aisle service!!!');
