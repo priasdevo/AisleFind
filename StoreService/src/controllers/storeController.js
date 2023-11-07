@@ -5,16 +5,35 @@ const getStore = async (call, callback) => {
     try {
         const id = call.request.id;
         const store = await db.one('SELECT * FROM store WHERE id=$1', [id]);
-        callback(null, { store: store });
+        if(call.user.role == "owner"){
+            if(store.owner_id != call.user.id){
+                callback({
+                    code: grpc.status.PERMISSION_DENIED,
+                    message: 'You do not have permission to access this store.',
+                });
+            }
+            else{
+                callback(null, { store: store });
+            }
+        }
+        else{
+            callback(null, { store: store });
+        }
     } catch (error) {
         console.log("error : ", error);
-        callback(error);
+        callback(null, { error: error });
     }
 };
 
 const getStoresList = async (call, callback) => {
     try {
-        const stores = await db.any('SELECT * FROM store');
+        let stores = [];
+        if(call.user.role == "owner"){
+            stores = await db.any('SELECT * FROM store WHERE owner_id=$1', [call.user.id]);
+        }
+        else{
+            stores = await db.any('SELECT * FROM store');    
+        }
         callback(null, { stores: stores });
     } catch (error) {
         console.log("error : ", error);

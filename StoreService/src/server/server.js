@@ -29,13 +29,13 @@ const server = new grpc.Server();
 
 // Wrap the service handlers with the middleware
 server.addService(storeProto.StoreService.service, {
-  GetStore: storeController.getStore,
-  GetStoresList: storeController.getStoresList,
+  GetStore: protect(storeController.getStore),
+  GetStoresList: protect(storeController.getStoresList),
   CreateStore: protectOwnerRole(storeController.createStore),
   UpdateStore: protectOwnerRole(storeController.updateStore),
   DeleteStore: protectOwnerRole(storeController.deleteStore),
   // Layout controller can also be wrapped accordingly
-  GetStoreLayout: layoutController.getStoreLayout, 
+  GetStoreLayout: protect(layoutController.getStoreLayout), 
   AddLayout: protectOwnerRole(layoutController.addLayout), 
   UpdateLayout: protectOwnerRole(layoutController.updateLayout), 
   DeleteLayout: protectOwnerRole(layoutController.deleteLayout), 

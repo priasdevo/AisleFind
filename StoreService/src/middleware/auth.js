@@ -36,7 +36,8 @@ async function authenticateAndAuthorize(call, needOwnerRole = false) {
 function protect(handler) {
     return async (call, callback) => {
         try {
-            await authenticateAndAuthorize(call);
+            const userData = await authenticateAndAuthorize(call);
+            call.user = userData; // Attach user data to the call object
             handler(call, callback);
         } catch (error) {
             callback(error);
