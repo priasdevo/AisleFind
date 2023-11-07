@@ -27,5 +27,5 @@ export interface IUser {
   password: string,
   role: 'customer' | 'owner'
   imgUrl?: string
-  id: mongoose.Types.ObjectId
+  id: string
 }

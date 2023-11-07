@@ -1,4 +1,6 @@
 import Item, {IItem} from "../entity/item";
+import Store, {IStore} from "../entity/store";
+import Layout, {ILayout} from "../entity/layout";
 import { Request, Response } from 'express';
 import { getRepository, getConnection, Like } from 'typeorm';
 
@@ -49,34 +51,162 @@ export const searchItem = async (req: Request, res: Response) => {
 
 export const addItem = async (req: Request, res: Response) => {
     let body: IItem = req.body;
-    body.search_count = req.body.searchCount || 0;
-    const newItem = getRepository(Item).create(req.body);
-    const result = await getRepository(Item).save(newItem);
-    res.status(201).json(result);
+    body.search_count = body.search_count || 0; // Ensure that body.search_count is assigned properly
+    const layout_id = body.layout_id;
+    const store_id = body.store_id;
+    const owner_Id = req.user?.id;
+
+    try {
+        // Get the store to verify the owner
+        const storeRepository = getRepository(Store);
+        const store = await storeRepository.findOne({
+        where: { id: store_id }
+        });
+
+        if (!store) {
+        return res.status(404).json({ message: 'Store not found.' });
+        }
+
+        if (store.owner_id !== owner_Id) {
+        return res.status(403).json({ message: 'You are not authorized to add items to this store.' });
+        }
+
+        // Verify that the layout belongs to the correct store
+        const layoutRepository = getRepository(Layout);
+        const layout = await layoutRepository.findOne({
+        where: { id: layout_id, store_id: store_id }
+        });
+
+        if (!layout) {
+        return res.status(404).json({ message: 'Layout not found in this store.' });
+        }
+
+        // Proceed to add the item
+        const newItem = getRepository(Item).create(body);
+        const result = await getRepository(Item).save(newItem);
+        res.status(201).json(result);
+    } catch (error) {
+        // Handle any unexpected errors
+        res.status(500).json({ message: 'Server error while adding item.', error });
+    }
 }
 
 export const editItem = async (req: Request, res: Response) => {
-    const id = Number(req.params.id);  // Convert the ID from string to number
-    if (isNaN(id)) {
-        return res.status(400).json({ message: 'Invalid item ID provided' });
+    const itemId = Number(req.params.id);
+    const owner_Id = req.user?.id; // Assuming req.user is populated with the authenticated user's information
+    const newLayoutId = req.body.layout_id;
+  
+    if (isNaN(itemId)) {
+      return res.status(400).json({ message: 'Invalid item ID provided.' });
     }
-    const item = await getRepository(Item).findOne({ where: { id } });
-    if (!item) return res.status(404).json({ message: 'Item not found' });
+  
+    // Retrieve the item along with the store and layout information
+    const itemRepository = getRepository(Item);
+    const item = await itemRepository.findOne({
+      where: { id: itemId },
+      relations: ['store', 'layout'] // Assuming there's a relation 'layout' defined in your Item entity
+    });
+  
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found.' });
+    }
+  
+    // Check if the user is the owner of the store associated with the item
+    if (item.store.owner_id !== owner_Id) {
+      return res.status(403).json({ message: 'You are not authorized to edit this item.' });
+    }
+  
+    // If new layout_id is provided, check if it exists within the same store
+    if (newLayoutId) {
+      const layoutRepository = getRepository(Layout);
+      const layout = await layoutRepository.findOne({
+        where: { id: newLayoutId, store_id: item.store.id }
+      });
+      if (!layout) {
+        return res.status(400).json({ message: 'The provided layout does not exist in this store.' });
+      }
+    }
+  
+    // Prevent modification of store_id and search_count
+    const updatedData = { ...req.body };
+    delete updatedData.store_id;
+    delete updatedData.search_count;
+  
+    // Merge new data with the existing item, excluding store_id and search_count
+    itemRepository.merge(item, updatedData);
+  
+    // Save the updated item
+    try {
+      const result = await itemRepository.save(item);
 
-    getRepository(Item).merge(item, req.body); // merge new data
-    const result = await getRepository(Item).save(item);
-    res.json(result);
-}
+      const itemData = {
+        ...result,
+        store: undefined,
+        layout: undefined,
+        // any other relations to exclude...
+      };
+  
+      return res.json(itemData);
+    } catch (error) {
+      return res.status(500).json({ message: 'Error updating item.', error });
+    }
+  }
+  
+  
 
 export const deleteItem = async (req: Request, res: Response) => {
-    const id = Number(req.params.id);  // Convert the ID from string to number
-    if (isNaN(id)) {
-        return res.status(400).json({ message: 'Invalid item ID provided' });
+    const itemId = Number(req.params.id);
+    const owner_Id = req.user?.id;
+  
+    if (isNaN(itemId)) {
+      return res.status(400).json({ message: 'Invalid item ID provided.' });
     }
-    const result = await getRepository(Item).delete(id);
-    if (result.affected === 0) return res.status(404).json({ message: 'Item not found' });
-    res.json({ message: 'Item deleted' });
-}
+  
+    // Start a transaction to ensure atomicity
+    const queryRunner = getRepository(Item).manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+  
+    try {
+      // Retrieve the item and its store in a single find operation
+      const itemWithStore = await queryRunner.manager.findOne(Item, {
+        where: { id: itemId },
+        relations: ['store']
+      });
+  
+      if (!itemWithStore) {
+        await queryRunner.rollbackTransaction();
+        return res.status(404).json({ message: 'Item not found.' });
+      }
+  
+      // Check if the store owner ID matches the user's ID
+      if (itemWithStore.store.owner_id !== owner_Id) {
+        await queryRunner.rollbackTransaction();
+        return res.status(403).json({ message: 'You are not authorized to delete this item.' });
+      }
+  
+      // Proceed with deletion as the user is authorized
+      const result = await queryRunner.manager.delete(Item, itemId);
+  
+      if (result.affected === 0) {
+        await queryRunner.rollbackTransaction();
+        return res.status(404).json({ message: 'Item not found.' });
+      }
+  
+      // Commit the transaction if everything is fine
+      await queryRunner.commitTransaction();
+      res.json({ message: 'Item deleted successfully.' });
+    } catch (error) {
+      // If there's an error, roll back the transaction
+      await queryRunner.rollbackTransaction();
+      res.status(500).json({ message: 'Server error while deleting the item.', error });
+    } finally {
+      // Always release the query runner to prevent memory leaks
+      await queryRunner.release();
+    }
+  }
+  
+  
 
 // Get stats about items
 export const getItemStats = async (req: Request, res: Response) => {
