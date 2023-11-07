@@ -1,9 +1,5 @@
-import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
 import { Request, Response } from 'express';
 import { Metadata } from '@grpc/grpc-js';
-import dotenv from "dotenv";
-import path from "path";
 
 function generateMetadata(req: Request): Metadata {
     const metadata = new Metadata();
@@ -13,23 +9,8 @@ function generateMetadata(req: Request): Metadata {
     }
     return metadata;
 }
-const PROTO_PATH = path.join(__dirname, '..', '..', '..', 'SharedFile', 'proto', 'services', 'store', 'v1', 'store_service.proto'); // Update with actual path
 
-const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true,
-});
-const serviceProto: any = grpc.loadPackageDefinition(packageDefinition);
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
-const client = new serviceProto.StoreService(
-  process.env.STORE_SERVICE_URL || "localhost:50051", 
-  grpc.credentials.createInsecure()
-);
-
-export const handleGetStoresList = () => {
+export const handleGetStoresList = (client: any) => {
   return async (req: Request, res: Response) => {
     const metadata = generateMetadata(req);
     client.GetStoresList(req.body, metadata, (error: { message: any; }, response: any) => {
@@ -42,7 +23,7 @@ export const handleGetStoresList = () => {
   };
 };
 
-export const handleCreateStore = () => {
+export const handleCreateStore = (client: any) => {
   return async (req: Request, res: Response) => {
     const requestBody = { store: {...req.body} };
     const metadata = generateMetadata(req);
@@ -56,7 +37,7 @@ export const handleCreateStore = () => {
   };
 };
 
-export const handleUpdateStore = () => {
+export const handleUpdateStore = (client: any) => {
   return async (req: Request, res: Response) => {
     const requestBody = { store: {id: req.params.id, ...req.body} };
     const metadata = generateMetadata(req);
@@ -70,7 +51,7 @@ export const handleUpdateStore = () => {
   };
 };
 
-export const handleDeleteStore = () => {
+export const handleDeleteStore = (client: any) => {
   return async (req: Request, res: Response) => {
     const requestBody = { id: req.params.id };
     const metadata = generateMetadata(req);
@@ -84,7 +65,7 @@ export const handleDeleteStore = () => {
   };
 };
 
-export const handleGetStore = () => {
+export const handleGetStore = (client: any) => {
   return async (req: Request, res: Response) => {
     const requestBody = { id: req.params.id };
     const metadata = generateMetadata(req);
@@ -100,7 +81,7 @@ export const handleGetStore = () => {
 
 // Layout functions:
 
-export const handleGetStoreLayout = () => {
+export const handleGetStoreLayout = (client: any) => {
   return async (req: Request, res: Response) => {
     const requestBody = { id: req.params.id };
     const metadata = generateMetadata(req);
@@ -114,7 +95,7 @@ export const handleGetStoreLayout = () => {
   };
 };
 
-export const handleAddLayout = () => {
+export const handleAddLayout = (client: any) => {
   return async (req: Request, res: Response) => {
     const requestBody = { layout: {...req.body, store_id: req.params.id } };
     const metadata = generateMetadata(req);
@@ -128,7 +109,7 @@ export const handleAddLayout = () => {
   };
 };
 
-export const handleUpdateLayout = () => {
+export const handleUpdateLayout = (client: any) => {
   return async (req: Request, res: Response) => {
     const requestBody = { layout: {...req.body, store_id: req.params.id, id: req.params.layoutId} };
     const metadata = generateMetadata(req);
@@ -142,7 +123,7 @@ export const handleUpdateLayout = () => {
   };
 };
 
-export const handleDeleteLayout = () => {
+export const handleDeleteLayout = (client: any) => {
   return async (req: Request, res: Response) => {
     const requestBody = { store_id: req.params.id, layout_id: req.params.layoutId };
     const metadata = generateMetadata(req);
