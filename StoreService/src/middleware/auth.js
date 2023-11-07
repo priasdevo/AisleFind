@@ -1,12 +1,11 @@
 const grpc = require("@grpc/grpc-js");
 const axios = require("axios");
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
-const service_URL = process.env.USER_SERVICE_URL; 
+const { getURL } = require("../utils/consul")
 
 async function verifyToken(token) {
     // Call your auth service to verify the token
-    const response = await axios.get(`${service_URL}/auth/user`, {
+    const user_service_URL = await getURL('User-service');
+    const response = await axios.get(`${user_service_URL}/auth/user`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
