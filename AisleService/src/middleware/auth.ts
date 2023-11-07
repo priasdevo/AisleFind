@@ -3,6 +3,7 @@ import User, { IUser } from "../models/user";
 import axios from 'axios';
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
+import { getURL } from "../utils/consul";
 
 export const protect = async(req:Request, res:Response, next:NextFunction)=>{
 
@@ -19,7 +20,8 @@ export const protect = async(req:Request, res:Response, next:NextFunction)=>{
 
   try {
     //verify token
-    const service_URL = process.env.USER_SERVICE_URL;
+    // TODO : send request to userService to verify
+    const service_URL = await getURL('User-service');
     try {
         const response = await axios({
             method: 'GET',
