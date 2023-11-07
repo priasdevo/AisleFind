@@ -19,21 +19,21 @@ export const findItem = async (req: Request, res: Response) => {
 export const searchItem = async (req: Request, res: Response) => {
     if (req.query.title) {
         let title: string = req.query.title as string;
-        
+
         // Use the Like operator to search for items containing the title substring
         const items = await getRepository(Item).find({
             where: {
                 title: Like(`%${title}%`)
             },
-            select: ["id", "title", "description", "layout_id"]
+            select: ["id", "title", "description", "layout_id", "store_id"] // Added "store_id" to the selection
         });
 
-         // If items are found, increase the searchCount for each item
-         if (items.length > 0) {
+        // If items are found, increase the search_count for each item
+        if (items.length > 0) {
             await getConnection()
                 .createQueryBuilder()
                 .update(Item)
-                .set({ search_count: () => "search_count + 1" }) // Increment searchCount by 1
+                .set({ search_count: () => "search_count + 1" }) // Increment search_count by 1
                 .whereInIds(items.map(item => item.id)) // Apply the update only to items found in the search
                 .execute();
         } else {
@@ -43,11 +43,12 @@ export const searchItem = async (req: Request, res: Response) => {
     } else {
         // If there's no title query param, return all items
         const items = await getRepository(Item).find({
-            select: ["id", "title", "description", "layout_id"]
+            select: ["id", "title", "description", "layout_id", "store_id"] // Added "store_id" to the selection
         });
         res.json(items);
     }
-}
+};
+
 
 export const addItem = async (req: Request, res: Response) => {
     let body: IItem = req.body;
@@ -208,21 +209,40 @@ export const deleteItem = async (req: Request, res: Response) => {
   
   
 
-// Get stats about items
+// Get stats about all own items
 export const getItemStats = async (req: Request, res: Response) => {
     const ownerId = req.user?.id;
-    // each item has a store_id, each store has an owner_id
-    // query all items that has store with owner_id = ownerId
-    // join item and store table
-    console.log("querying items for owner : ", ownerId);
-    const items = await getRepository(Item).createQueryBuilder("item")
-        .innerJoin("item.store", "store")
-        .where("store.owner_id = :ownerId", { ownerId })
-        .select(["item.id", "item.title", "item.search_count", "item.layout_id"])
-        .getMany();
-    res.json(items);
-}
+    console.log("Querying items for owner: ", ownerId);
+    try {
+        const items = await getRepository(Item).createQueryBuilder("item")
+            .innerJoin("item.store", "store")
+            .where("store.owner_id = :ownerId", { ownerId })
+            .select([
+                "item.id", 
+                "item.title", 
+                "item.description", // Make sure to include the description if it's part of the item entity
+                "item.search_count", 
+                "item.layout_id",
+                "store.id AS store_id" // This line will rename the selected store.id to store_id
+            ])
+            .orderBy("item.search_count", "DESC")
+            .getRawMany(); // Use getRawMany() to get flat data rather than nested.
 
+        // Format the raw results to match the desired output
+        const formattedItems = items.map(item => ({
+            id: item.item_id,
+            title: item.item_title,
+            description: item.item_description, // Make sure this field exists in your entity
+            search_count: item.item_search_count,
+            layout_id: item.item_layout_id,
+            store_id: item.store_id
+        }));
+
+        res.json(formattedItems);
+    } catch (error) {
+        res.status(500).json({ message: "Error retrieving item statistics.", error });
+    }
+}
 
 // Get stats about a item
 export const getItemStatsById = async (req: Request, res: Response) => {
@@ -240,8 +260,6 @@ export const getItemStatsById = async (req: Request, res: Response) => {
     }
     
     const ownerId = req.user?.id.toString();
-    console.log("Test item : ", item);
-    console.log("Test item.store : ", item.store);
 
     // Assuming the store entity has owner_id and you have loaded it correctly
     if (item.store.owner_id != ownerId) {
@@ -253,6 +271,42 @@ export const getItemStatsById = async (req: Request, res: Response) => {
     res.json(itemWithoutStore);
 };
 
+// Get stats about all own items in specific store
+export const getItemStatsByStore = async (req: Request, res: Response) => {
+    const storeId = Number(req.params.storeId);
+    const ownerId = req.user?.id; // Assuming the user's ID is in req.user.id
+  
+    if (isNaN(storeId)) {
+      return res.status(400).json({ message: 'Invalid store ID provided.' });
+    }
+  
+    try {
+      // Check if the store belongs to the user
+      const store = await getRepository(Store).findOne({
+        where: { id: storeId, owner_id: ownerId } // Match both store ID and owner ID
+      });
+
+      if (!store) {
+        // If the store is not found or not owned by the user, return a Forbidden response
+        return res.status(403).json({ message: 'Forbidden: You do not own this store.' });
+      }
+
+      // Retrieve all items from the store owned by the user and sort by search_count in descending order
+      const items = await getRepository(Item)
+        .createQueryBuilder("item")
+        .where("item.store_id = :storeId", { storeId })
+        .orderBy("item.search_count", "DESC")
+        .getMany();
+  
+      // Return the sorted items
+      return res.json(items);
+    } catch (error) {
+      // Handle any errors
+      return res.status(500).json({ message: 'Error retrieving store item statistics.', error });
+    }
+}
+
+  
 
 
 // Get items by aisle
