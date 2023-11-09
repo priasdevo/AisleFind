@@ -1,12 +1,13 @@
 import express from "express";
-import { protect, isOwner } from "../middleware/auth"; // TODO add protect middleware by calling User service?
-import { searchItem, findItem, addItem, editItem, deleteItem, getItemStats, getItemStatsById, getItemByAisle } from "../controllers/item";
+import { protect, isOwner } from "../middleware/auth";
+import { searchItem, findItem, addItem, editItem, deleteItem, getItemStats, getItemStatsById, getItemStatsByStore, getItemByAisle } from "../controllers/item";
 
 const router = express.Router()
 
 router.get('/aisle/:layout_id', getItemByAisle)
-router.get('/stats/:id', protect, isOwner, getItemStatsById) 
 router.get('/stats/', protect, isOwner, getItemStats)
+router.get('/stats/:id', protect, isOwner, getItemStatsById) 
+router.get('/stats/store/:storeId', protect, isOwner, getItemStatsByStore)
 
 router.get('/:id', findItem)
 router.put('/:id', protect, isOwner, editItem)

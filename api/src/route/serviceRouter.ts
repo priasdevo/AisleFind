@@ -36,19 +36,18 @@ async function getURL(serviceName:string){
 // Get URL path from consul
 let userService_URL = 'http://localhost:5000';
 let aisleService_URL = 'http://localhost:7000';
-let storeService_URL = 'http://localhost:50051';
+let storeService_URL = 'localhost:50051';
 
 async function setURLs(){
   userService_URL = await getURL('User-service')
   aisleService_URL = await getURL('Aisle-service')
   storeService_URL = await getURL('Store-service')
-  console.log(userService_URL)
   // Route to User Service
   router.use('/user', handleRESTServiceRequest(userService_URL));
   // Route to Aisle Service
   router.use('/aisle', handleRESTServiceRequest(aisleService_URL));
-  // Route to Store Service // TODO: change to gRPC maybe?
-  router.use('/store', storeRouter);
+  // Route to Store Service 
+  router.use('/store', storeRouter(storeService_URL));
 }
 setURLs()
 

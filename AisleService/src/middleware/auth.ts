@@ -20,7 +20,6 @@ export const protect = async(req:Request, res:Response, next:NextFunction)=>{
 
   try {
     //verify token
-    // TODO : send request to userService to verify
     const service_URL = await getURL('User-service');
     try {
         const response = await axios({

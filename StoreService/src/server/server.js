@@ -11,6 +11,8 @@ var protoLoader = require("@grpc/proto-loader");
 // Import the controllers
 const storeController = require('../controllers/storeController'); 
 const layoutController = require('../controllers/layoutController'); 
+// Import the auth middleware
+const { protect, protectOwnerRole } = require('../middleware/auth');
 
 const options = {
   keepCase: true,
@@ -25,24 +27,28 @@ const storeProto = grpc.loadPackageDefinition(packageDefinitionStore);
 
 const server = new grpc.Server();
 
-// store service proto route
+// Wrap the service handlers with the middleware
 server.addService(storeProto.StoreService.service, {
-  CreateStore: storeController.createStore,
-  UpdateStore: storeController.updateStore,
-  DeleteStore: storeController.deleteStore,
-  GetStore: storeController.getStore,
-  GetStoresList: storeController.getStoresList,
-  //layout controller
-  GetStoreLayout: layoutController.getStoreLayout, 
-  AddLayout: layoutController.addLayout, 
-  UpdateLayout: layoutController.updateLayout, 
-  DeleteLayout: layoutController.deleteLayout, 
-})
+  GetStore: protect(storeController.getStore),
+  GetStoresList: protect(storeController.getStoresList),
+  CreateStore: protectOwnerRole(storeController.createStore),
+  UpdateStore: protectOwnerRole(storeController.updateStore),
+  DeleteStore: protectOwnerRole(storeController.deleteStore),
+  // Layout controller can also be wrapped accordingly
+  GetStoreLayout: protect(layoutController.getStoreLayout), 
+  AddLayout: protectOwnerRole(layoutController.addLayout), 
+  UpdateLayout: protectOwnerRole(layoutController.updateLayout), 
+  DeleteLayout: protectOwnerRole(layoutController.deleteLayout), 
+});
 
 server.bindAsync(
-  "127.0.0.1:50051",
+  "0.0.0.0:50051",
   grpc.ServerCredentials.createInsecure(),
   (error, port) => {
+    if (error) {
+      console.error(error);
+      return;
+    }
     console.log("Server running at http://127.0.0.1:50051");
     server.start();
   }
