@@ -6,7 +6,6 @@ const getStore = async (call, callback) => {
     try {
         const id = call.request.id;
         const store = await db.one('SELECT * FROM store WHERE id=$1', [id]);
-        console.log(call.user.role);
         if(call.user.role == "owner"){
             if(store.owner_id != call.user.id){
                 callback({
