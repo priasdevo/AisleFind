@@ -15,6 +15,7 @@ import { AiOutlineShop } from "react-icons/ai";
 import { HiOutlineDocumentText } from "react-icons/hi";
 import { IoMdStats } from "react-icons/io";
 import AisleRightBlock from "./AisleRightBlock/AisleRightBlock";
+import StatComponent from "./Stat/StatComponent";
 
 interface AisleGridProps {
   isOwner: boolean;
@@ -93,28 +94,30 @@ const AisleGrid = (props: AisleGridProps) => {
         </SmallIconButton>
         {/* Add any other content for the left side here */}
       </LeftBlock>
-
-      <AisleSubGrid
-        gridTemplateColumns={gridTemplateColumns}
-        gridTemplateRows={gridTemplateRows}
-      >
-        {cellDetails.map((cell) => (
-          <AisleCell
-            key={`empty-${cell.startRow}-${cell.startColumn}`}
-            isOwner={isOwner}
-            startColumn={cell.startColumn}
-            columnSpan={cell.columnSpan}
-            startRow={cell.startRow}
-            rowSpan={cell.rowSpan}
-            selected={cell.selected}
-            status={cell.status}
-            text={cell.text}
-            onClick={() => {
-              cellClickHandle(cell.startRow, cell.startColumn);
-            }}
-          />
-        ))}
-      </AisleSubGrid>
+      {mode !== 8 && (
+        <AisleSubGrid
+          gridTemplateColumns={gridTemplateColumns}
+          gridTemplateRows={gridTemplateRows}
+        >
+          {cellDetails.map((cell) => (
+            <AisleCell
+              key={`empty-${cell.startRow}-${cell.startColumn}`}
+              isOwner={isOwner}
+              startColumn={cell.startColumn}
+              columnSpan={cell.columnSpan}
+              startRow={cell.startRow}
+              rowSpan={cell.rowSpan}
+              selected={cell.selected}
+              status={cell.status}
+              text={cell.text}
+              onClick={() => {
+                cellClickHandle(cell.startRow, cell.startColumn);
+              }}
+            />
+          ))}
+        </AisleSubGrid>
+      )}{" "}
+      {mode === 8 && <StatComponent />}
       <AisleRightBlock
         changeMode={changeMode}
         mode={mode}

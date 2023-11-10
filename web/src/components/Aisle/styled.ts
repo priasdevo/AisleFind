@@ -26,13 +26,13 @@ export const AisleSubGrid = styled("div")<StyledGridProps>`
   border-radius: 8px;
   border: 4px solid #d9d9d9;
   padding: 25px;
-  width: 60vw;
 `;
 
 export const AisleGridWrapper = styled("div")`
   display: flex;
   justify-content: space-between; // This will create space between the left content, center grid, and right buttons
   width: 100%;
+  height: 76.5vh;
   padding: 20px; // Add some padding around the main wrapper
 `;
 

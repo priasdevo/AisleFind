@@ -27,6 +27,7 @@ export const Option = styled("input")`
   padding: 10px;
   border: 1px solid #ccc;
   margin-bottom: 10px;
+  border-radius: 12px;
   width: 100%;
 `;
 

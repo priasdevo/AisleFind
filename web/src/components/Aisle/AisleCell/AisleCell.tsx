@@ -37,6 +37,9 @@ const AisleCell = (props: AisleCellProps) => {
   return (
     <AisleCellStyle
       style={{
+        maxHeight: text === "ประตู" ? "20px" : "",
+        minHeight: text === "ประตู" ? "20px" : "50px",
+        marginTop: text === "ประตู" ? "70px" : "",
         border: border,
         backgroundColor: background_color,
         gridColumnStart: startColumn,

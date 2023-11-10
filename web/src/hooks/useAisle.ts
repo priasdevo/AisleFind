@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { CELLSTATUS } from "@/components/Aisle/constants";
+import { useSnackbar } from "@/context/snackbarContext";
 
 type CellDetail = {
   startRow: number;
@@ -27,23 +28,45 @@ export type ItemPos = {
 };
 
 const useAisle = () => {
+  const { displaySnackbar } = useSnackbar();
+
   const [cellDetails, setCellDetails] = useState<CellDetail[]>([]);
   const [objectText, setObjectText] = useState<string>();
   const [shelfName, setShelfName] = useState<string>();
   const [selectedItem, setSelectedItem] = useState<number>(-1);
   const [itemList, setItemList] = useState<ItemPos[]>([
     {
-      itemName: "อาหารแมว",
-      location: "ชั้นวาง 2",
-      description: "ฝั่งขวาชั้นบน",
+      itemName: "ประเภทสินค้า1",
+      location: "ชั้นวาง 1",
+      description: "ชั้นที่ 2 ฝั่ง ซ้าย",
     },
     {
-      itemName: "อาหารแมว 2",
-      location: "ชั้นวาง 4",
-      description: "ฝั่งซ้ายชั้นบน",
+      itemName: "ประเภทสินค้า2",
+      location: "ชั้นวาง 2",
+      description: "ชั้นที่ 3 ฝั่ง ขวา",
+    },
+    {
+      itemName: "เครื่องดื่มและน้ำ",
+      location: "ชั้นวาง 1",
+      description: "ชั้นที่ 4 ฝั่ง ซ้าย",
+    },
+    {
+      itemName: "ขนมและวิปครีม",
+      location: "ชั้นวาง 3",
+      description: "ชั้นที่ 4 ฝั่ง ขวา",
+    },
+    {
+      itemName: "ของเครื่องใช้บนโต๊ะ",
+      location: "ชั้นวาง 2",
+      description: "ชั้นที่ 2 ฝั่ง ซ้าย",
+    },
+    {
+      itemName: "อาหารเสริมและวิตามิน",
+      location: "ชั้นวาง 3",
+      description: "ชั้นที่ 1 ฝั่ง ขวา",
     },
   ]);
-  const [mode, setMode] = useState<number>(0);
+  const [mode, setMode] = useState<number>(2);
   /* Mode number meaning
   mode 0 : nothing
   mode 1 : Add
@@ -59,6 +82,10 @@ const useAisle = () => {
   const [objectList, setObjectList] = useState<Position[]>([
     { row: 1, col: 1, rowSpan: 2, colSpan: 2 },
     { row: 3, col: 3, rowSpan: 1, colSpan: 2 },
+    { row: 5, col: 5, rowSpan: 1, colSpan: 2 },
+    { row: 1, col: 6, rowSpan: 2, colSpan: 1 },
+    { row: 6, col: 1, rowSpan: 1, colSpan: 2, name: "แคชเชียร์" },
+    { row: 7, col: 3, rowSpan: 1, colSpan: 2, name: "ประตู" },
   ]);
 
   const height = 7;
@@ -89,7 +116,7 @@ const useAisle = () => {
         rowSpan: aisleObject.rowSpan!,
         columnSpan: aisleObject.colSpan!,
         status: CELLSTATUS.OBJECT,
-        text: index + 1,
+        text: aisleObject.name ? aisleObject.name : index + 1,
       };
     });
 
@@ -289,6 +316,7 @@ const useAisle = () => {
         );
         if (overlappingObject) {
           console.error("Overlap detected. Move is not possible.");
+          displaySnackbar("Overlap detected. Move is not possible.", "error");
           return; // Exit if an overlap is detected
         }
       }

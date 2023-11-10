@@ -1,6 +1,7 @@
 import React from "react";
 import { Container, Box } from "@mui/material";
 import AisleGrid from "@/components/Aisle/AisleGrid";
+import Header from "@/components/header";
 const mockPositions = [
   [1, 1, 2, 2], // This will span from row 1-3 and column 1-3
   [3, 3, 1, 2], // This will span from row 3-4 and column 3-4
@@ -11,6 +12,7 @@ const AislePage = () => {
   console.log("Page render");
   return (
     <div>
+      <Header />
       <Box
         display="flex"
         height="100vh"
@@ -19,7 +21,7 @@ const AislePage = () => {
         justifyContent="center"
       >
         <AisleGrid
-          isOwner={false}
+          isOwner={true}
           width={7}
           height={7}
           positions={mockPositions as [number, number, number, number][]}
