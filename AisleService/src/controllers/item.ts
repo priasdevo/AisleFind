@@ -52,7 +52,7 @@ export const searchItem = async (req: Request, res: Response) => {
         const items = await getRepository(Item).find({
             select: ["id", "title", "description", "layout_id", "store_id"] // Added "store_id" to the selection
         });
-        sendMessage('Log', 'user searched for all items', { items });
+        sendMessage('Log', 'user searched for all items', { });
         res.json(items);
     }
 };
@@ -163,7 +163,7 @@ export const editItem = async (req: Request, res: Response) => {
         layout: undefined,
         // any other relations to exclude...
       };
-      sendMessage('Log', 'user edited item with id', { itemId });
+      sendMessage('Log', 'user edited item with id', { itemData, itemId });
       return res.json(itemData);
     } catch (error) {
       sendMessage('Log', 'server error while editing item', { error });
