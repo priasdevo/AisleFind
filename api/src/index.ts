@@ -12,7 +12,9 @@ const app = express();
 app.use(express.json());
 
 // Use the CORS middleware
-app.use(cors())
+app.use(cors({
+  origin: ["http://localhost:3000"],
+}))
 
 app.get('/', (req, res) => {
   res.send('hello from api gateway')
