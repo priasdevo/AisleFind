@@ -3,6 +3,7 @@ import Store, {IStore} from "../entity/store";
 import Layout, {ILayout} from "../entity/layout";
 import { Request, Response } from 'express';
 import { getRepository, getConnection, Like } from 'typeorm';
+import { sendMessage } from "../utils/logService";
 
 //find item by id
 export const findItem = async (req: Request, res: Response) => {
@@ -11,7 +12,11 @@ export const findItem = async (req: Request, res: Response) => {
         return res.status(400).json({ message: 'Invalid item ID provided' });
     }
     const item = await getRepository(Item).findOne({ where: { id } });
-    if (!item) return res.status(404).json({ message: 'Item not found' });
+    if (!item) {
+      sendMessage('Log', 'user searched for item id that does not exist', { id });
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    sendMessage('Log', 'user searched for item id', { id });
     res.json(item);
 }
 
@@ -37,14 +42,17 @@ export const searchItem = async (req: Request, res: Response) => {
                 .whereInIds(items.map(item => item.id)) // Apply the update only to items found in the search
                 .execute();
         } else {
+          sendMessage('Log', 'user searched for item title that does not exist', { title });
             return res.status(404).json([]);
         }
+        sendMessage('Log', 'user searched for item title', { title });
         res.json(items);
     } else {
         // If there's no title query param, return all items
         const items = await getRepository(Item).find({
             select: ["id", "title", "description", "layout_id", "store_id"] // Added "store_id" to the selection
         });
+        sendMessage('Log', 'user searched for all items', { });
         res.json(items);
     }
 };
@@ -65,10 +73,12 @@ export const addItem = async (req: Request, res: Response) => {
         });
 
         if (!store) {
+        sendMessage('Log', 'user tried to add item to store that does not exist', { store_id });
         return res.status(404).json({ message: 'Store not found.' });
         }
 
         if (store.owner_id !== owner_Id) {
+        sendMessage('Log', 'user tried to add item to store not belonging to them', { store_id });
         return res.status(403).json({ message: 'You are not authorized to add items to this store.' });
         }
 
@@ -79,15 +89,18 @@ export const addItem = async (req: Request, res: Response) => {
         });
 
         if (!layout) {
+        sendMessage('Log', 'user tried to add item to invalid layout id', { layout_id });
         return res.status(404).json({ message: 'Layout not found in this store.' });
         }
 
         // Proceed to add the item
         const newItem = getRepository(Item).create(body);
         const result = await getRepository(Item).save(newItem);
+        sendMessage('Log', 'user added new item to layout', { newItem, layout_id });
         res.status(201).json(result);
     } catch (error) {
         // Handle any unexpected errors
+        sendMessage('Log', 'server error while adding item', { error });
         res.status(500).json({ message: 'Server error while adding item.', error });
     }
 }
@@ -98,6 +111,7 @@ export const editItem = async (req: Request, res: Response) => {
     const newLayoutId = req.body.layout_id;
   
     if (isNaN(itemId)) {
+      sendMessage('Log', 'user tried to edit item with invalid id', { itemId });
       return res.status(400).json({ message: 'Invalid item ID provided.' });
     }
   
@@ -109,11 +123,13 @@ export const editItem = async (req: Request, res: Response) => {
     });
   
     if (!item) {
+      sendMessage('Log', 'user tried to edit item that does not exist', { itemId });
       return res.status(404).json({ message: 'Item not found.' });
     }
   
     // Check if the user is the owner of the store associated with the item
     if (item.store.owner_id !== owner_Id) {
+      sendMessage('Log', 'user tried to edit item not belonging to them', { itemId });
       return res.status(403).json({ message: 'You are not authorized to edit this item.' });
     }
   
@@ -124,6 +140,7 @@ export const editItem = async (req: Request, res: Response) => {
         where: { id: newLayoutId, store_id: item.store.id }
       });
       if (!layout) {
+        sendMessage('Log', 'user tried to edit item with invalid layout id', { newLayoutId });
         return res.status(400).json({ message: 'The provided layout does not exist in this store.' });
       }
     }
@@ -146,9 +163,10 @@ export const editItem = async (req: Request, res: Response) => {
         layout: undefined,
         // any other relations to exclude...
       };
-  
+      sendMessage('Log', 'user edited item with id', { itemData, itemId });
       return res.json(itemData);
     } catch (error) {
+      sendMessage('Log', 'server error while editing item', { error });
       return res.status(500).json({ message: 'Error updating item.', error });
     }
   }
@@ -160,6 +178,7 @@ export const deleteItem = async (req: Request, res: Response) => {
     const owner_Id = req.user?.id;
   
     if (isNaN(itemId)) {
+      sendMessage('Log', 'user tried to delete item with invalid id', { itemId });
       return res.status(400).json({ message: 'Invalid item ID provided.' });
     }
   
@@ -177,12 +196,14 @@ export const deleteItem = async (req: Request, res: Response) => {
   
       if (!itemWithStore) {
         await queryRunner.rollbackTransaction();
+        sendMessage('Log', 'user tried to delete item that does not exist', { itemId });
         return res.status(404).json({ message: 'Item not found.' });
       }
   
       // Check if the store owner ID matches the user's ID
       if (itemWithStore.store.owner_id !== owner_Id) {
         await queryRunner.rollbackTransaction();
+        sendMessage('Log', 'user tried to delete item not belonging to them', { itemId });
         return res.status(403).json({ message: 'You are not authorized to delete this item.' });
       }
   
@@ -191,15 +212,18 @@ export const deleteItem = async (req: Request, res: Response) => {
   
       if (result.affected === 0) {
         await queryRunner.rollbackTransaction();
+        sendMessage('Log', 'user tried to delete item that does not exist', { itemId });
         return res.status(404).json({ message: 'Item not found.' });
       }
   
       // Commit the transaction if everything is fine
       await queryRunner.commitTransaction();
+      sendMessage('Log', 'user deleted item with id', { itemId });
       res.json({ message: 'Item deleted successfully.' });
     } catch (error) {
       // If there's an error, roll back the transaction
       await queryRunner.rollbackTransaction();
+      sendMessage('Log', 'server error while deleting item', { error });
       res.status(500).json({ message: 'Server error while deleting the item.', error });
     } finally {
       // Always release the query runner to prevent memory leaks
@@ -237,9 +261,10 @@ export const getItemStats = async (req: Request, res: Response) => {
             layout_id: item.item_layout_id,
             store_id: item.store_id
         }));
-
+        sendMessage('Log', 'user searched for all item stats', { });
         res.json(formattedItems);
     } catch (error) {
+        sendMessage('Log', 'server error while getting item stats', { error });
         res.status(500).json({ message: "Error retrieving item statistics.", error });
     }
 }
@@ -248,6 +273,7 @@ export const getItemStats = async (req: Request, res: Response) => {
 export const getItemStatsById = async (req: Request, res: Response) => {
     const id = Number(req.params.id);  // Convert the ID from string to number
     if (isNaN(id)) {
+        sendMessage('Log', 'user searched for item stats with invalid id', { id });
         return res.status(400).json({ message: 'Invalid item ID provided' });
     }
     const item = await getRepository(Item).findOne({
@@ -256,6 +282,7 @@ export const getItemStatsById = async (req: Request, res: Response) => {
         select: ["id", "title", "search_count", "layout_id", "store"] // Ensure store is included
     });
     if (!item) {
+        sendMessage('Log', 'user searched for item stats with invalid id', { id });
         return res.status(404).json({ message: 'Item not found' });
     }
     
@@ -263,11 +290,13 @@ export const getItemStatsById = async (req: Request, res: Response) => {
 
     // Assuming the store entity has owner_id and you have loaded it correctly
     if (item.store.owner_id != ownerId) {
+        sendMessage('Log', 'user searched for item stats not belonging to them', { id });
         return res.status(403).json({ message: 'Forbidden' });
     }
     
     // Remove store information before sending to client if it's not needed
     const { store, ...itemWithoutStore } = item;
+    sendMessage('Log', 'user searched for item stats with id', { id });
     res.json(itemWithoutStore);
 };
 
@@ -277,6 +306,7 @@ export const getItemStatsByStore = async (req: Request, res: Response) => {
     const ownerId = req.user?.id; // Assuming the user's ID is in req.user.id
   
     if (isNaN(storeId)) {
+      sendMessage('Log', 'user searched for item stats with invalid store id', { storeId });
       return res.status(400).json({ message: 'Invalid store ID provided.' });
     }
   
@@ -288,6 +318,7 @@ export const getItemStatsByStore = async (req: Request, res: Response) => {
 
       if (!store) {
         // If the store is not found or not owned by the user, return a Forbidden response
+        sendMessage('Log', 'user searched for item stats in store not belonging to them', { storeId });
         return res.status(403).json({ message: 'Forbidden: You do not own this store.' });
       }
 
@@ -299,9 +330,11 @@ export const getItemStatsByStore = async (req: Request, res: Response) => {
         .getMany();
   
       // Return the sorted items
+      sendMessage('Log', 'user searched for item stats in store with id', { storeId });
       return res.json(items);
     } catch (error) {
       // Handle any errors
+      sendMessage('Log', 'server error while getting item stats in store', { error });
       return res.status(500).json({ message: 'Error retrieving store item statistics.', error });
     }
 }
@@ -314,6 +347,7 @@ export const getItemByAisle = async (req: Request, res: Response) => {
     const aisle = req.params.layout_id;
     // parse aisle to number
     if (isNaN(Number(aisle))) {
+        sendMessage('Log', 'user searched for item by aisle with invalid id', { aisle });
         return res.status(400).json({ message: 'Invalid aisle ID provided' });
     }
     const aisleId = Number(aisle);
@@ -321,5 +355,6 @@ export const getItemByAisle = async (req: Request, res: Response) => {
         where: { layout_id: aisleId },
         select: ["id", "title", "description", "layout_id"]
     });
+    sendMessage('Log', 'user searched for item by aisle with id', { aisleId });
     res.json(item);
 }
