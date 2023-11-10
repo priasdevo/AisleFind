@@ -35,8 +35,7 @@ const addLayout = async (call, callback) => {
             'INSERT INTO layout(pos_x, pos_y, row_span, col_span, type, store_id) VALUES($1, $2, $3, $4, $5, $6) RETURNING id',
             [layout.pos_x, layout.pos_y, layout.row_span, layout.col_span, layout.type, layout.store_id]
         );
-        const resultID = result.id;
-        sendMessage('Log', "Add store layout", { resultID });
+        sendMessage('Log', "Add store layout", { result });
         callback(null, { layout_id: result.id, status: "SUCCESS" });
     } catch (error) {
         sendMessage('Log', "Add store layout", { resultID, error });

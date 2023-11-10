@@ -1,6 +1,8 @@
-import { connect } from "amqplib";
+// import connect from amqplib
+const { connect } = require("amqplib");
 
-export async function sendMessage(queue, message, data) {
+
+async function sendMessage(queue, message, data) {
   const con = await connect("amqp://aislefind.pisuttun.com")
   const ch = await con.createChannel();
   await ch.assertQueue(queue);
@@ -16,3 +18,7 @@ export async function sendMessage(queue, message, data) {
     con.close()
   }, 1000);
 }
+
+module.exports = {
+  sendMessage
+};
