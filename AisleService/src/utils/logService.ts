@@ -1,7 +1,7 @@
 import { connect } from "amqplib";
 
 export async function sendMessage(queue:string, message:string, data:any) {
-  const con = await connect("amqp://localhost")
+  const con = await connect("amqp://aislefind.pisuttun.com")
   const ch = await con.createChannel();
   await ch.assertQueue(queue)
 
