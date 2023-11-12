@@ -76,13 +76,13 @@ const AisleRightBlock = (props: AisleRightBlockProps) => {
                 onClick={() => selectItem(index)}
               >
                 <Typography variant="subtitle1" sx={{ width: "100%" }}>
-                  {item.itemName}
+                  {item.title}
                 </Typography>
                 <Typography
                   variant="subtitle2"
                   sx={{ width: "100%", color: "#8F8F8F", marginTop: "-15px" }}
                 >
-                  {item.location} {item.description}
+                  {"ชั้นวางหมายเลข " + item.layout_id} {item.description}
                 </Typography>
               </div>
             );

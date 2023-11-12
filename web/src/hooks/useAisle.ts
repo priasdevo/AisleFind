@@ -1,6 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+"use client";
+import { useState, useEffect } from "react";
 import { CELLSTATUS } from "@/components/Aisle/constants";
 import { useSnackbar } from "@/context/snackbarContext";
+import { usePathname } from "next/navigation";
+import { revalidateTag } from "next/cache";
 
 type CellDetail = {
   startRow: number;
@@ -9,22 +12,33 @@ type CellDetail = {
   columnSpan: number;
   selected?: boolean;
   status?: string;
-  text?: string;
+  id?: string;
+  type?: string;
 };
 
 type Position = {
-  row: number;
-  col: number;
-  rowSpan?: number;
-  colSpan?: number;
-  name?: string;
+  id: string;
+  pos_x: number;
+  pos_y: number;
+  row_span?: number;
+  col_span?: number;
+  type?: string;
 };
 
 export type ItemPos = {
-  itemName: string;
-  location: string;
+  id: string;
+  title: string;
+  layout_id: string;
   description: string;
   selected?: boolean;
+};
+
+type store = {
+  title: string;
+  description: string;
+  size_x: number;
+  size_y: number;
+  id: number;
 };
 
 const useAisle = () => {
@@ -34,38 +48,8 @@ const useAisle = () => {
   const [objectText, setObjectText] = useState<string>();
   const [shelfName, setShelfName] = useState<string>();
   const [selectedItem, setSelectedItem] = useState<number>(-1);
-  const [itemList, setItemList] = useState<ItemPos[]>([
-    {
-      itemName: "ประเภทสินค้า1",
-      location: "ชั้นวาง 1",
-      description: "ชั้นที่ 2 ฝั่ง ซ้าย",
-    },
-    {
-      itemName: "ประเภทสินค้า2",
-      location: "ชั้นวาง 2",
-      description: "ชั้นที่ 3 ฝั่ง ขวา",
-    },
-    {
-      itemName: "เครื่องดื่มและน้ำ",
-      location: "ชั้นวาง 1",
-      description: "ชั้นที่ 4 ฝั่ง ซ้าย",
-    },
-    {
-      itemName: "ขนมและวิปครีม",
-      location: "ชั้นวาง 3",
-      description: "ชั้นที่ 4 ฝั่ง ขวา",
-    },
-    {
-      itemName: "ของเครื่องใช้บนโต๊ะ",
-      location: "ชั้นวาง 2",
-      description: "ชั้นที่ 2 ฝั่ง ซ้าย",
-    },
-    {
-      itemName: "อาหารเสริมและวิตามิน",
-      location: "ชั้นวาง 3",
-      description: "ชั้นที่ 1 ฝั่ง ขวา",
-    },
-  ]);
+  const [store, setStore] = useState<store>();
+  const [itemList, setItemList] = useState<ItemPos[]>([]);
   const [mode, setMode] = useState<number>(2);
   /* Mode number meaning
   mode 0 : nothing
@@ -79,66 +63,79 @@ const useAisle = () => {
   mode 8 : Stat
   */
   const [selected, setSelected] = useState<Position[]>([]);
-  const [objectList, setObjectList] = useState<Position[]>([
-    { row: 1, col: 1, rowSpan: 2, colSpan: 2 },
-    { row: 3, col: 3, rowSpan: 1, colSpan: 2 },
-    { row: 5, col: 5, rowSpan: 1, colSpan: 2 },
-    { row: 1, col: 6, rowSpan: 2, colSpan: 1 },
-    { row: 6, col: 1, rowSpan: 1, colSpan: 2, name: "แคชเชียร์" },
-    { row: 7, col: 3, rowSpan: 1, colSpan: 2, name: "ประตู" },
-  ]);
+  const [objectList, setObjectList] = useState<Position[]>([]);
 
-  const height = 7;
-  const width = 7;
+  const pathName = usePathname();
+  const [id, setId] = useState<string | undefined>(); // State is now explicitly typed
 
   useEffect(() => {
-    const grid: boolean[][] = Array.from({ length: height }, () =>
-      Array(width).fill(false)
-    );
+    const match = pathName.match(/\/aisle\/([^\/]+)/i);
+    if (match) {
+      setId(match[1]);
+    }
+  }, [pathName]);
 
-    const occupiedCells: CellDetail[] = objectList.map((aisleObject, index) => {
-      for (
-        let row = aisleObject.row;
-        row < aisleObject.row + aisleObject.rowSpan!;
-        row++
-      ) {
-        for (
-          let col = aisleObject.col;
-          col < aisleObject.col + aisleObject.colSpan!;
-          col++
-        ) {
-          grid[row - 1][col - 1] = true;
-        }
-      }
-      return {
-        startRow: aisleObject.row,
-        startColumn: aisleObject.col,
-        rowSpan: aisleObject.rowSpan!,
-        columnSpan: aisleObject.colSpan!,
-        status: CELLSTATUS.OBJECT,
-        text: aisleObject.name ? aisleObject.name : index + 1,
-      };
-    });
+  useEffect(() => {
+    if (id) {
+      fetchData();
+      fetchLayout();
+      fetchItem();
+    }
+  }, [id]);
 
-    // Find the empty cells
-    const emptyCells: CellDetail[] = [];
-    grid.forEach((row, rowIndex) => {
-      row.forEach((isOccupied, colIndex) => {
-        if (!isOccupied) {
-          emptyCells.push({
-            startRow: rowIndex + 1,
-            startColumn: colIndex + 1,
-            rowSpan: 1,
-            columnSpan: 1,
-            status: CELLSTATUS.BLANK,
-          });
+  useEffect(() => {
+    if (objectList.length !== 0 && store) {
+      const grid: boolean[][] = Array.from({ length: store?.size_y! }, () =>
+        Array(store?.size_x).fill(false)
+      );
+
+      const occupiedCells: CellDetail[] = objectList.map(
+        (aisleObject, index) => {
+          for (
+            let row = aisleObject.pos_x;
+            row < aisleObject.pos_x + aisleObject.row_span!;
+            row++
+          ) {
+            for (
+              let col = aisleObject.pos_y;
+              col < aisleObject.pos_y + aisleObject.col_span!;
+              col++
+            ) {
+              grid[row - 1][col - 1] = true;
+            }
+          }
+          return {
+            startRow: aisleObject.pos_x,
+            startColumn: aisleObject.pos_y,
+            rowSpan: aisleObject.row_span!,
+            columnSpan: aisleObject.col_span!,
+            status: CELLSTATUS.OBJECT,
+            id: aisleObject.id,
+            type: aisleObject.type,
+          };
         }
+      );
+
+      // Find the empty cells
+      const emptyCells: CellDetail[] = [];
+      grid.forEach((row, rowIndex) => {
+        row.forEach((isOccupied, colIndex) => {
+          if (!isOccupied) {
+            emptyCells.push({
+              startRow: rowIndex + 1,
+              startColumn: colIndex + 1,
+              rowSpan: 1,
+              columnSpan: 1,
+              status: CELLSTATUS.BLANK,
+            });
+          }
+        });
       });
-    });
 
-    // Combine occupied and empty cells and update state
-    setCellDetails([...occupiedCells, ...emptyCells]);
-  }, [objectList]);
+      // Combine occupied and empty cells and update state
+      setCellDetails([...occupiedCells, ...emptyCells]);
+    }
+  }, [objectList, store]);
 
   const cellClickHandle = (startRow: number, startColumn: number) => {
     setCellDetails((prevDetails) =>
@@ -158,14 +155,18 @@ const useAisle = () => {
           if (mode === 1 && !cell.selected) {
             setSelected((prevSelected) => [
               ...prevSelected,
-              { row: cell.startRow, col: cell.startColumn },
+              {
+                id: cell.id!,
+                pos_x: cell.startRow,
+                pos_y: cell.startColumn,
+              },
             ]);
           } else if (mode === 1 && cell.selected) {
             setSelected((prevSelected) =>
               prevSelected.filter((position) => {
                 return (
-                  position.row !== cell.startRow ||
-                  position.col !== cell.startColumn
+                  position.pos_x !== cell.startRow ||
+                  position.pos_y !== cell.startColumn
                 );
               })
             );
@@ -174,10 +175,11 @@ const useAisle = () => {
               setSelected((prevSelected) => [
                 ...prevSelected,
                 {
-                  row: cell.startRow,
-                  col: cell.startColumn,
-                  rowSpan: cell.rowSpan,
-                  colSpan: cell.columnSpan,
+                  id: cell.id!,
+                  pos_x: cell.startRow,
+                  pos_y: cell.startColumn,
+                  row_span: cell.rowSpan,
+                  col_span: cell.columnSpan,
                 },
               ]);
             } else if (
@@ -187,10 +189,11 @@ const useAisle = () => {
               setSelected((prevSelected) => [
                 ...prevSelected,
                 {
-                  row: cell.startRow,
-                  col: cell.startColumn,
-                  rowSpan: cell.rowSpan,
-                  colSpan: cell.columnSpan,
+                  id: cell.id!,
+                  pos_x: cell.startRow,
+                  pos_y: cell.startColumn,
+                  row_span: cell.rowSpan,
+                  col_span: cell.columnSpan,
                 },
               ]);
             } else {
@@ -203,18 +206,19 @@ const useAisle = () => {
             setSelected((prevSelected) => [
               ...prevSelected,
               {
-                row: cell.startRow,
-                col: cell.startColumn,
-                rowSpan: cell.rowSpan,
-                colSpan: cell.columnSpan,
+                id: cell.id!,
+                pos_x: cell.startRow,
+                pos_y: cell.startColumn,
+                row_span: cell.rowSpan,
+                col_span: cell.columnSpan,
               },
             ]);
           } else if (mode === 3 && cell.selected) {
             setSelected((prevSelected) =>
               prevSelected.filter((position) => {
                 return (
-                  position.row !== cell.startRow ||
-                  position.col !== cell.startColumn
+                  position.pos_x !== cell.startRow ||
+                  position.pos_y !== cell.startColumn
                 );
               })
             );
@@ -223,19 +227,20 @@ const useAisle = () => {
             setSelected((prevSelected) => [
               ...prevSelected,
               {
-                row: cell.startRow,
-                col: cell.startColumn,
-                rowSpan: cell.rowSpan,
-                colSpan: cell.columnSpan,
-                name: cell.text,
+                id: cell.id!,
+                pos_x: cell.startRow,
+                pos_y: cell.startColumn,
+                row_span: cell.rowSpan,
+                col_span: cell.columnSpan,
+                name: cell.id,
               },
             ]);
           } else {
             setSelected((prevSelected) =>
               prevSelected.filter((position) => {
                 return (
-                  position.row !== cell.startRow ||
-                  position.col !== cell.startColumn
+                  position.pos_x !== cell.startRow ||
+                  position.pos_y !== cell.startColumn
                 );
               })
             );
@@ -253,22 +258,25 @@ const useAisle = () => {
 
   const confirmCreate = () => {
     if (isRectangle(selected)) {
-      const minRow = Math.min(...selected.map((p) => p.row));
-      const maxRow = Math.max(...selected.map((p) => p.row));
-      const minCol = Math.min(...selected.map((p) => p.col));
-      const maxCol = Math.max(...selected.map((p) => p.col));
+      const minRow = Math.min(...selected.map((p) => p.pos_x));
+      const maxRow = Math.max(...selected.map((p) => p.pos_x));
+      const minCol = Math.min(...selected.map((p) => p.pos_y));
+      const maxCol = Math.max(...selected.map((p) => p.pos_y));
 
       const newRowSpan = maxRow - minRow + 1;
       const newColSpan = maxCol - minCol + 1;
 
-      const newObject = {
-        row: minRow,
-        col: minCol,
-        rowSpan: newRowSpan,
-        colSpan: newColSpan,
-      };
-
-      setObjectList((prev) => [...prev, newObject]);
+      createNewObject(
+        minRow,
+        minCol,
+        newRowSpan,
+        newColSpan,
+        objectText === "ประตู"
+          ? "DOOR"
+          : objectText === "ชั้นวาง"
+          ? "SHELF"
+          : "CASHIER"
+      );
       setSelected([]);
     } else {
       console.log("Selected is not rectangle : ", selected);
@@ -278,14 +286,9 @@ const useAisle = () => {
   const confirmDelete = () => {
     if (selected.length === 0) return; // exit if no selected object
 
-    const { row, col } = selected[0];
+    const { id } = selected[0];
 
-    // Filter out the deleted object from the objectList
-    const updatedObjectList = objectList.filter(
-      (object) => !(object.row === row && object.col === col)
-    );
-
-    setObjectList(updatedObjectList);
+    deleteObject(id);
     setSelected([]);
   };
 
@@ -296,23 +299,23 @@ const useAisle = () => {
 
     // Find the object to move in the objectList
     const objectToMove = objectList.find(
-      (obj) => obj.row === origin.row && obj.col === origin.col
+      (obj) => obj.pos_x === origin.pos_x && obj.pos_y === origin.pos_y
     );
 
     if (!objectToMove) return; // Exit if no matching object found
 
-    const destinationEndRow = destination.row + objectToMove.rowSpan!;
-    const destinationEndCol = destination.col + objectToMove.colSpan!;
+    const destinationEndRow = destination.pos_x + objectToMove.row_span!;
+    const destinationEndCol = destination.pos_y + objectToMove.col_span!;
 
     // Check for overlaps at the destination
-    for (let row = destination.row; row < destinationEndRow; row++) {
-      for (let col = destination.col; col < destinationEndCol; col++) {
+    for (let row = destination.pos_x; row < destinationEndRow; row++) {
+      for (let col = destination.pos_y; col < destinationEndCol; col++) {
         const overlappingObject = objectList.find(
           (obj) =>
-            row >= obj.row &&
-            row < obj.row + obj.rowSpan! &&
-            col >= obj.col &&
-            col < obj.col + obj.colSpan!
+            row >= obj.pos_x &&
+            row < obj.pos_x + obj.row_span! &&
+            col >= obj.pos_y &&
+            col < obj.pos_y + obj.col_span!
         );
         if (overlappingObject) {
           console.error("Overlap detected. Move is not possible.");
@@ -323,11 +326,17 @@ const useAisle = () => {
     }
 
     // Adjust the row and col of the object to move
-    objectToMove.row = destination.row;
-    objectToMove.col = destination.col;
+    objectToMove.pos_x = destination.pos_x;
+    objectToMove.pos_y = destination.pos_y;
 
     // Update the state with the adjusted objectList
-    setObjectList([...objectList]);
+    moveObject(
+      objectToMove.id,
+      destination.pos_x,
+      destination.pos_y,
+      objectToMove.row_span!,
+      objectToMove.col_span!
+    );
 
     // Clear the selected state
     setSelected([]);
@@ -356,17 +365,12 @@ const useAisle = () => {
     itemShelf: string,
     itemDescription: string
   ) => {
-    console.log("ConfirmItem");
+    console.log("ConfirmItem : ", selectedItem);
     if (mode === 5) {
-      const newItem: ItemPos = {
-        itemName: itenName,
-        location: `ชั้นวาง ${itemShelf}`,
-        description: itemDescription,
-      };
-      setItemList((prev) => [...prev, newItem]);
+      createItem(itenName, itemDescription, id!, itemShelf);
       setMode(4);
     } else if (mode === 7) {
-      setItemList((prev) => prev.filter((_, index) => index !== selectedItem));
+      deleteItem(itemList[selectedItem].id);
       setMode(4);
     }
   };
@@ -437,23 +441,225 @@ const useAisle = () => {
     }
   };
 
+  async function createNewObject(
+    pos_x: number,
+    pos_y: number,
+    row_span: number,
+    col_span: number,
+    type: string
+  ) {
+    try {
+      const req = {
+        pos_x: pos_x,
+        pos_y: pos_y,
+        row_span: row_span,
+        col_span: col_span,
+        type: type,
+      };
+      const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
+      const response = await fetch(
+        process.env["NEXT_PUBLIC_GATEWAY_URL"] + "/store/" + id + "/layout",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+          body: JSON.stringify(req),
+        }
+      );
+      const data = await response.json();
+      fetchLayout();
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  async function deleteObject(layoutId: string) {
+    try {
+      const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
+      const response = await fetch(
+        process.env["NEXT_PUBLIC_GATEWAY_URL"] +
+          "/store/" +
+          id +
+          "/layout/" +
+          layoutId,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+        }
+      );
+      const data = await response.json();
+      fetchLayout();
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  async function moveObject(
+    layoutId: string,
+    pos_x: number,
+    pos_y: number,
+    row_span: number,
+    col_span: number
+  ) {
+    try {
+      const req = {
+        pos_x: pos_x,
+        pos_y: pos_y,
+        row_span: row_span,
+        col_span: col_span,
+        type: "SHELF",
+      };
+      const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
+      const response = await fetch(
+        process.env["NEXT_PUBLIC_GATEWAY_URL"] +
+          "/store/" +
+          id +
+          "/layout/" +
+          layoutId,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+          body: JSON.stringify(req),
+        }
+      );
+      const data = await response.json();
+      fetchLayout();
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  async function fetchData() {
+    try {
+      const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
+      const response = await fetch(
+        process.env["NEXT_PUBLIC_GATEWAY_URL"] + "/store/" + id,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+        }
+      );
+      const data = await response.json();
+      setStore(data.store);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  async function fetchLayout() {
+    try {
+      const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
+      const response = await fetch(
+        process.env["NEXT_PUBLIC_GATEWAY_URL"] + "/store/" + id + "/layout",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+          next: { tags: ["object"] },
+        }
+      );
+      const data = await response.json();
+      setObjectList(data.layouts);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  async function fetchItem() {
+    try {
+      const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
+      const response = await fetch(
+        process.env["NEXT_PUBLIC_GATEWAY_URL"] +
+          "/aisle/items/stats/store/" +
+          id,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+        }
+      );
+      const data = await response.json();
+      setItemList(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  async function createItem(
+    title: string,
+    description: string,
+    store_id: string,
+    layout_id: string
+  ) {
+    try {
+      const req = {
+        title: title,
+        description: description,
+        store_id: store_id,
+        layout_id: layout_id,
+      };
+      const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
+      const response = await fetch(
+        process.env["NEXT_PUBLIC_GATEWAY_URL"] + "/aisle/items",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+          body: JSON.stringify(req),
+        }
+      );
+      const data = await response.json();
+      fetchItem();
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  async function deleteItem(itemId: string) {
+    try {
+      const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
+      const response = await fetch(
+        process.env["NEXT_PUBLIC_GATEWAY_URL"] + "/aisle/items/" + itemId,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+        }
+      );
+      fetchItem();
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
   useEffect(() => {
     console.log("Prias current selected : ", selected);
     console.log("Prias cell Details : ", cellDetails);
-    if (selected.length !== 0 && selected[selected.length - 1].name) {
-      setShelfName(selected[selected.length - 1].name);
+    if (selected.length !== 0 && selected[selected.length - 1].id) {
+      setShelfName(selected[selected.length - 1].id.toString());
     } else {
       setShelfName("");
     }
   }, [selected]);
-
-  useEffect(() => {
-    //console.log("Prias mode : ", mode);
-  }, [mode]);
-
-  useEffect(() => {
-    console.log(itemList), [itemList];
-  });
 
   return {
     cellDetails,
@@ -466,6 +672,7 @@ const useAisle = () => {
     confirmItem,
     shelfName,
     selectItem,
+    store,
   };
 };
 
@@ -479,11 +686,11 @@ const isRectangle = (positions: Position[]): boolean => {
   let maxCol = -Infinity;
 
   // Find the minimum and maximum rows and columns.
-  positions.forEach(({ row, col }) => {
-    minRow = Math.min(minRow, row);
-    maxRow = Math.max(maxRow, row);
-    minCol = Math.min(minCol, col);
-    maxCol = Math.max(maxCol, col);
+  positions.forEach(({ pos_x, pos_y }) => {
+    minRow = Math.min(minRow, pos_x);
+    maxRow = Math.max(maxRow, pos_x);
+    minCol = Math.min(minCol, pos_y);
+    maxCol = Math.max(maxCol, pos_y);
   });
 
   // Calculate the expected number of positions for a rectangle.
@@ -495,7 +702,7 @@ const isRectangle = (positions: Position[]): boolean => {
   // Check if all positions in the defined rectangle are in the positions set.
   for (let row = minRow; row <= maxRow; row++) {
     for (let col = minCol; col <= maxCol; col++) {
-      if (!positions.some((pos) => pos.row === row && pos.col === col)) {
+      if (!positions.some((pos) => pos.pos_x === row && pos.pos_y === col)) {
         return false;
       }
     }

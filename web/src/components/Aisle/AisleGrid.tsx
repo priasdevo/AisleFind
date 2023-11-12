@@ -39,6 +39,7 @@ const AisleGrid = (props: AisleGridProps) => {
     confirmItem,
     shelfName,
     selectItem,
+    store,
   } = useAisle();
   console.log("AisleGrid render");
 
@@ -46,7 +47,7 @@ const AisleGrid = (props: AisleGridProps) => {
     <AisleGridWrapper>
       {/* Left content */}
       <LeftBlock>
-        <Typography variant="h6">ร้าน XXX 1</Typography>
+        <Typography variant="h6">ร้าน {store?.title}</Typography>
         <SmallIconButton
           sx={{
             width: "auto",
@@ -109,7 +110,8 @@ const AisleGrid = (props: AisleGridProps) => {
               rowSpan={cell.rowSpan}
               selected={cell.selected}
               status={cell.status}
-              text={cell.text}
+              text={cell.id}
+              type={cell.type}
               onClick={() => {
                 cellClickHandle(cell.startRow, cell.startColumn);
               }}

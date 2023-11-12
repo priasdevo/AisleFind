@@ -14,6 +14,7 @@ interface AisleCellProps {
   status?: string;
   onClick: Function;
   text?: string;
+  type?: string;
 }
 
 const AisleCell = (props: AisleCellProps) => {
@@ -27,6 +28,7 @@ const AisleCell = (props: AisleCellProps) => {
     selected,
     status,
     text,
+    type,
   } = props;
   const border = selected ? BORDER["SELECTED"] : isOwner ? BORDER["OWNER"] : "";
   const background_color = selected
@@ -37,9 +39,9 @@ const AisleCell = (props: AisleCellProps) => {
   return (
     <AisleCellStyle
       style={{
-        maxHeight: text === "ประตู" ? "20px" : "",
-        minHeight: text === "ประตู" ? "20px" : "50px",
-        marginTop: text === "ประตู" ? "70px" : "",
+        maxHeight: type === "DOOR" ? "20px" : "",
+        minHeight: type === "DOOR" ? "20px" : "50px",
+        marginTop: type === "DOOR" ? "70px" : "",
         border: border,
         backgroundColor: background_color,
         gridColumnStart: startColumn,
@@ -51,7 +53,7 @@ const AisleCell = (props: AisleCellProps) => {
         onClick();
       }}
     >
-      {text}
+      {type === "CASHIER" ? "แคชเชียร์" : type === "DOOR" ? "ประตู" : text}
     </AisleCellStyle>
   );
 };
