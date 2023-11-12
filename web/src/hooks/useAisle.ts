@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { CELLSTATUS } from "@/components/Aisle/constants";
 import { useSnackbar } from "@/context/snackbarContext";
 import { usePathname } from "next/navigation";
-import { revalidateTag } from "next/cache";
 
 type CellDetail = {
   startRow: number;
@@ -30,6 +29,7 @@ export type ItemPos = {
   title: string;
   layout_id: string;
   description: string;
+  search_count: number;
   selected?: boolean;
 };
 
@@ -335,7 +335,8 @@ const useAisle = () => {
       destination.pos_x,
       destination.pos_y,
       objectToMove.row_span!,
-      objectToMove.col_span!
+      objectToMove.col_span!,
+      objectToMove.type
     );
 
     // Clear the selected state
@@ -431,6 +432,7 @@ const useAisle = () => {
         )
       );
       setSelectedItem(index);
+      setShelfName(itemList[index].layout_id);
     } else {
       setSelectedItem(index);
       const updatedItem = { ...itemList[index], selected: true };
@@ -504,7 +506,8 @@ const useAisle = () => {
     pos_x: number,
     pos_y: number,
     row_span: number,
-    col_span: number
+    col_span: number,
+    type: string
   ) {
     try {
       const req = {
@@ -512,7 +515,7 @@ const useAisle = () => {
         pos_y: pos_y,
         row_span: row_span,
         col_span: col_span,
-        type: "SHELF",
+        type: type,
       };
       const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
       const response = await fetch(
@@ -673,6 +676,7 @@ const useAisle = () => {
     shelfName,
     selectItem,
     store,
+    selectedItem,
   };
 };
 

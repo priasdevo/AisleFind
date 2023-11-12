@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import { ModalWrapper, ModalContent, ActionButton, Option } from "./styled";
 
 interface modalProps {
@@ -7,19 +8,30 @@ interface modalProps {
   confirm: Function;
   shelfName: string;
   mode: number;
+  startName: string;
+  startDetails: string;
 }
 
 const AisleItemModal = (props: modalProps) => {
-  const { isShow, cancel, confirm, shelfName, mode } = props;
+  const { isShow, cancel, confirm, shelfName, mode, startName, startDetails } =
+    props;
 
-  const [productName, setProductName] = useState("");
-  const [productDetails, setProductDetails] = useState("");
+  useEffect(() => {
+    console.log("Current startName : ", startName);
+    setProductName(startName);
+  }, [startName]);
+  useEffect(() => {
+    setProductDetails(startDetails);
+  }, [startDetails]);
+
+  const [productName, setProductName] = useState(startName);
+  const [productDetails, setProductDetails] = useState(startDetails);
 
   return (
     <ModalWrapper>
       {isShow && (
         <ModalContent>
-          {mode === 5 && (
+          {mode !== 7 && (
             <>
               <Option
                 type="text"

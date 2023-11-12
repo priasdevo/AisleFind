@@ -1,5 +1,6 @@
+"use client";
 import { Typography } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 import { CONFIRMKEYWORD } from "../constants";
 import { RightBlock, SmallIconButton } from "./styled";
 import AisleComponentManage from "./AisleComponentManage/AisleComponentManage";
@@ -18,6 +19,7 @@ interface AisleRightBlockProps {
   confirmItem: Function;
   shelfName: string;
   selectItem: Function;
+  selectedIndex?: number;
 }
 
 const AisleRightBlock = (props: AisleRightBlockProps) => {
@@ -30,10 +32,12 @@ const AisleRightBlock = (props: AisleRightBlockProps) => {
     confirmItem,
     shelfName,
     selectItem,
+    selectedIndex,
   } = props;
   let selectItemCount = 0;
   const canEdit = [true, true, false];
   const name = ["ชั้นวาง", "ประตู", "แคชเชียร์"];
+
   return (
     <RightBlock>
       {mode <= 3 && <Typography variant="h6">แก้ไขโครงสร้างร้าน</Typography>}
@@ -108,6 +112,20 @@ const AisleRightBlock = (props: AisleRightBlockProps) => {
         cancel={() => changeMode(4, "")}
         confirm={confirmItem}
         mode={mode}
+        startName={
+          selectedIndex !== -1
+            ? itemList[selectedIndex!]
+              ? itemList[selectedIndex!].title
+              : ""
+            : ""
+        }
+        startDetails={
+          selectedIndex !== -1
+            ? itemList[selectedIndex!]
+              ? itemList[selectedIndex!].description
+              : ""
+            : ""
+        }
       />
     </RightBlock>
   );

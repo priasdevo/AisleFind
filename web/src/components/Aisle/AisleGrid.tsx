@@ -40,6 +40,7 @@ const AisleGrid = (props: AisleGridProps) => {
     shelfName,
     selectItem,
     store,
+    selectedItem,
   } = useAisle();
   console.log("AisleGrid render");
 
@@ -119,7 +120,7 @@ const AisleGrid = (props: AisleGridProps) => {
           ))}
         </AisleSubGrid>
       )}{" "}
-      {mode === 8 && <StatComponent />}
+      {mode === 8 && <StatComponent itemList={itemList} />}
       <AisleRightBlock
         changeMode={changeMode}
         mode={mode}
@@ -129,6 +130,7 @@ const AisleGrid = (props: AisleGridProps) => {
         confirmItem={confirmItem}
         shelfName={shelfName!}
         selectItem={selectItem}
+        selectedIndex={selectedItem}
       />
     </AisleGridWrapper>
   );

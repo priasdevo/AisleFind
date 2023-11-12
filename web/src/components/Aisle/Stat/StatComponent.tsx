@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+import { ItemPos } from "@/hooks/useAisle";
+import React, { useEffect, useState } from "react";
 
 const statsData = [
   { label: "ประเภทสินค้า 1", value: 100 },
@@ -8,8 +10,21 @@ const statsData = [
 
 const maxStat = Math.max(...statsData.map((stat) => stat.value));
 
-const StatComponent = () => {
+interface StatProps {
+  itemList: ItemPos[];
+}
+
+const StatComponent = (props: StatProps) => {
+  const { itemList } = props;
   const [search, setSearch] = useState("");
+  const [itemStat, setItemStat] = useState<ItemPos[]>([]);
+
+  useEffect(() => {
+    const sortedItems = [...itemList].sort(
+      (a, b) => b.search_count - a.search_count
+    );
+    setItemStat(sortedItems);
+  }, [itemList]);
 
   return (
     <div style={{ padding: "20px" }}>
@@ -33,22 +48,22 @@ const StatComponent = () => {
             width: "100%",
           }}
         >
-          {statsData
-            .filter((stat) => stat.label.includes(search))
+          {itemStat
+            .filter((stat) => stat.title.includes(search))
             .map((stat, idx) => (
               <div key={idx} style={{ textAlign: "center" }}>
                 <div
                   style={{
                     width: "50px",
-                    height: `${(stat.value / maxStat) * 200}px`,
-                    marginTop: `${200 - (stat.value / maxStat) * 200}px`,
+                    height: `${(stat.search_count / maxStat) * 200}px`,
+                    marginTop: `${200 - (stat.search_count / maxStat) * 200}px`,
                     background: "#FFA07A",
                     marginBottom: "5px",
                     transition: "height 0.3s ease",
                   }}
                 />
-                <span>{stat.value}</span>
-                <p>{stat.label}</p>
+                <span>{stat.search_count}</span>
+                <p>{stat.title}</p>
               </div>
             ))}
         </div>
