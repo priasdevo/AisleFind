@@ -20,7 +20,7 @@ export const AisleCell = styled("div")<StyledCellProps>`
 
 export const AisleSubGrid = styled("div")<StyledGridProps>`
   display: grid;
-  gap: 1rem;
+  gap: 16px;
   grid-template-columns: ${(props) => props.gridTemplateColumns};
   grid-template-rows: ${(props) => props.gridTemplateRows};
   border-radius: 8px;

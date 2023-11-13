@@ -34,7 +34,7 @@ const useStore = () => {
     }
 
     fetchData();
-  });
+  }, []);
 
   return { allStore };
 };

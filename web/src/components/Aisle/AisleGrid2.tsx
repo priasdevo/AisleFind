@@ -6,48 +6,55 @@ import {
   LeftBlock,
   RightBlock,
 } from "./styled";
-import useAisle from "@/hooks/useAisle";
+import useAisleCustomer from "@/hooks/useAisleCustomer";
 import AisleCell from "./AisleCell/AisleCell";
 import { Typography } from "@mui/material";
+import useStore from "@/hooks/useStore";
+import AisleItemListModal from "./AisleItemListModal/AisleItemListModal";
 
 interface AisleGridProps {
   isOwner: boolean;
-  width: number;
-  height: number;
-  positions: [number, number, number, number][];
 }
 
 const AisleGrid2 = (props: AisleGridProps) => {
-  const { isOwner, width, height } = props;
-  const gridTemplateColumns = `repeat(${width}, 50px)`;
-  const gridTemplateRows = `repeat(${height}, 50px)`;
-  const { cellDetails, cellClickHandle, changeMode } = useAisle();
+  const { isOwner } = props;
+
+  const {
+    cellDetails,
+    itemList,
+    selectedShop,
+    setSelectedShop,
+    store,
+    selectItem,
+    selectedItem,
+    selected,
+    selectCell,
+  } = useAisleCustomer();
+  const gridTemplateColumns = `repeat(${store?.size_x}, 50px)`;
+  const gridTemplateRows = `repeat(${store?.size_y}, 50px)`;
+  const { allStore } = useStore();
   const [searchValue, setSearchValue] = useState("");
   const [searchValue2, setSearchValue2] = useState("");
-  const itemList = [
-    { name: "ประเภทสินค้า1", desc: "ชั้นวางที่ 1 ชั้นที่ 2 ฝั่ง ซ้าย" },
-    { name: "ประเภทสินค้า2", desc: "ชั้นวางที่ 2 ชั้นที่ 3 ฝั่ง ขวา" },
-    { name: "เครื่องดื่มและน้ำ", desc: "ชั้นวางที่ 1 ชั้นที่ 4 ฝั่ง ซ้าย" },
-    { name: "ขนมและวิปครีม", desc: "ชั้นวางที่ 3 ชั้นที่ 4 ฝั่ง ขวา" },
-    { name: "ของเครื่องใช้บนโต๊ะ", desc: "ชั้นวางที่ 2 ชั้นที่ 2 ฝั่ง ซ้าย" },
-  ];
 
-  const shopList = [
-    { name: "ร้าน XXX 1", desc: "ชั้นวางที่ 1 ชั้นที่ 2 ฝั่ง ซ้าย" },
-    { name: "ร้าน YYY 2", desc: "ชั้นวางที่ 2 ชั้นที่ 3 ฝั่ง ขวา" },
-    { name: "ร้าน ZZZ 3", desc: "ชั้นวางที่ 1 ชั้นที่ 4 ฝั่ง ซ้าย" },
-    { name: "ร้าน BBB 5", desc: "ชั้นวางที่ 2 ชั้นที่ 2 ฝั่ง ซ้าย" },
-  ];
-
-  const filteredShops = shopList.filter(
+  const filteredShops = allStore.filter(
     (shop) =>
-      shop.name.includes(searchValue2) || shop.desc.includes(searchValue2)
+      shop.title.includes(searchValue2) ||
+      shop.description.includes(searchValue2)
   );
 
-  const filteredItems = itemList.filter(
-    (item) => item.name.includes(searchValue) || item.desc.includes(searchValue)
-  );
-
+  console.log("Prias itemList test : ", itemList);
+  const filteredItems =
+    itemList.length !== 0
+      ? itemList.filter(
+          (item) =>
+            item.title.includes(searchValue) ||
+            item.description.includes(searchValue)
+        )
+      : [];
+  const shelfItem =
+    itemList.length !== 0
+      ? itemList.filter((item) => item.layout_id === selected?.id)
+      : [];
   console.log("AisleGrid render");
 
   return (
@@ -95,12 +102,15 @@ const AisleGrid2 = (props: AisleGridProps) => {
                 style={{
                   padding: "10px",
                   marginBottom: "10px",
-                  backgroundColor: index === 0 ? "#FFD5B5" : "",
+                  backgroundColor: shop.id === selectedShop ? "#FFD5B5" : "",
+                }}
+                onClick={() => {
+                  setSelectedShop(shop.id);
                 }}
               >
-                <Typography variant="body1">{shop.name}</Typography>
+                <Typography variant="body1">{shop.title}</Typography>
                 <Typography variant="caption" color="textSecondary">
-                  {shop.desc}
+                  {shop.description}
                 </Typography>
               </div>
             );
@@ -109,75 +119,107 @@ const AisleGrid2 = (props: AisleGridProps) => {
         {/* ... add more shops as needed */}
       </LeftBlock>
 
-      <AisleSubGrid
-        gridTemplateColumns={gridTemplateColumns}
-        gridTemplateRows={gridTemplateRows}
-      >
-        {cellDetails.map((cell) => (
-          <AisleCell
-            key={`empty-${cell.startRow}-${cell.startColumn}`}
-            isOwner={isOwner}
-            startColumn={cell.startColumn}
-            columnSpan={cell.columnSpan}
-            startRow={cell.startRow}
-            rowSpan={cell.rowSpan}
-            selected={cell.selected}
-            status={cell.status}
-            text={cell.text}
-            onClick={() => {
-              cellClickHandle(cell.startRow, cell.startColumn);
-            }}
-          />
-        ))}
-      </AisleSubGrid>
-      <RightBlock>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-          }}
+      {selectedShop !== -1 && (
+        <AisleSubGrid
+          gridTemplateColumns={gridTemplateColumns}
+          gridTemplateRows={gridTemplateRows}
+          style={{ position: "relative" }}
         >
-          <input
-            type="text"
-            placeholder="ค้นหาสินค้า"
-            style={{ flex: 1, padding: "5px", marginRight: "10px" }}
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-          />
-          <button>🔍</button>{" "}
-          {/* This is a placeholder search icon; replace with your preferred icon */}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            borderRadius: "12px",
-            padding: "15px",
-            height: "100%",
-            gap: "5px",
-            width: "100%",
-          }}
-        >
-          {filteredItems.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                width: "100%",
-              }}
+          {cellDetails.map((cell) => (
+            <AisleCell
+              key={`empty-${cell.startRow}-${cell.startColumn}`}
+              isOwner={isOwner}
+              startColumn={cell.startColumn}
+              columnSpan={cell.columnSpan}
+              startRow={cell.startRow}
+              rowSpan={cell.rowSpan}
+              selected={cell.selected}
+              status={cell.status}
+              text={cell.id}
+              type={cell.type}
               onClick={() => {
-                cellClickHandle(1, 1);
+                selectCell(cell.id!);
               }}
-            >
-              <Typography variant="body1">{item.name}</Typography>
-              <Typography variant="caption" color="textSecondary">
-                {item.desc}
-              </Typography>
-            </div>
+            />
           ))}
-        </div>
-        {/* ... add more shops as needed */}
-      </RightBlock>
+          <AisleItemListModal
+            isOpen={selected !== null && !selected.selected!}
+            left={selected?.startColumn! + selected?.columnSpan! - 1}
+            top={selected?.startRow! + selected?.rowSpan! - 1}
+          >
+            {shelfItem.map((item, index) => (
+              <div
+                key={item.id}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  backgroundColor: "white",
+                }}
+              >
+                <Typography variant="body1">{item.title}</Typography>
+                <Typography variant="caption" color="textSecondary">
+                  {item.description}
+                </Typography>
+              </div>
+            ))}
+          </AisleItemListModal>
+        </AisleSubGrid>
+      )}
+      {selectedShop !== -1 && (
+        <RightBlock>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <input
+              type="text"
+              placeholder="ค้นหาสินค้า"
+              style={{ flex: 1, padding: "5px", marginRight: "10px" }}
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <button>🔍</button>{" "}
+            {/* This is a placeholder search icon; replace with your preferred icon */}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              borderRadius: "12px",
+              padding: "15px",
+              height: "100%",
+              gap: "5px",
+              width: "100%",
+            }}
+          >
+            {filteredItems.map((item, index) => (
+              <div
+                key={item.id}
+                style={{
+                  width: "100%",
+                  backgroundColor:
+                    selectedItem === parseInt(item.id) ? "#FFEBDC" : "",
+                  padding: "12px",
+                  borderRadius: "8px",
+                }}
+                onClick={() => {
+                  selectItem(parseInt(item.id), item.layout_id);
+                }}
+              >
+                <Typography variant="body1">{item.title}</Typography>
+                <Typography variant="caption" color="textSecondary">
+                  {item.description}
+                </Typography>
+              </div>
+            ))}
+          </div>
+          {/* ... add more shops as needed */}
+        </RightBlock>
+      )}
     </AisleGridWrapper>
   );
 };

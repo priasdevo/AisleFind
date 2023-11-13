@@ -370,6 +370,15 @@ const useAisle = () => {
     if (mode === 5) {
       createItem(itenName, itemDescription, id!, itemShelf);
       setMode(4);
+    } else if (mode === 6) {
+      editItem(
+        itenName,
+        itemDescription,
+        id!,
+        itemShelf,
+        itemList[selectedItem].id
+      );
+      setMode(4);
     } else if (mode === 7) {
       deleteItem(itemList[selectedItem].id);
       setMode(4);
@@ -621,6 +630,39 @@ const useAisle = () => {
         process.env["NEXT_PUBLIC_GATEWAY_URL"] + "/aisle/items",
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+          body: JSON.stringify(req),
+        }
+      );
+      const data = await response.json();
+      fetchItem();
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  async function editItem(
+    title: string,
+    description: string,
+    store_id: string,
+    layout_id: string,
+    itemId: string
+  ) {
+    try {
+      const req = {
+        title: title,
+        description: description,
+        store_id: store_id,
+        layout_id: layout_id,
+      };
+      const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
+      const response = await fetch(
+        process.env["NEXT_PUBLIC_GATEWAY_URL"] + "/aisle/items/" + itemId,
+        {
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`, // Include the token in the Authorization header
