@@ -1,6 +1,6 @@
 import express from "express";
-import { protect, isOwner } from "../middleware/auth";
-import { searchItem, findItem, addItem, editItem, deleteItem, getItemStats, getItemStatsById, getItemStatsByStore, getItemByAisle } from "../controllers/item";
+import { protect, isOwner, isCustomer } from "../middleware/auth";
+import { searchItem, findItem, getItemsByStore, addItem, editItem, deleteItem, getItemStats, getItemStatsById, getItemStatsByStore, getItemByAisle } from "../controllers/item";
 
 const router = express.Router()
 
@@ -16,5 +16,6 @@ router.delete('/:id', protect, isOwner, deleteItem)
 router.get('/', searchItem)
 router.post('/', protect, isOwner, addItem)
 
+router.get('/store/:storeId', protect, isCustomer, getItemsByStore)
 
 export default router
