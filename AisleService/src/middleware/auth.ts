@@ -63,6 +63,19 @@ export const isOwner = async(req:Request, res:Response, next:NextFunction)=>{
     next();
 }
 
+export const isCustomer = async(req:Request, res:Response, next:NextFunction)=>{
+  // Ensure user exists on the request object
+  if (!req.user) {
+      return res.status(401).json({success: false, msg: "Not authorize to access this route"});
+  }
+
+  // Check if user's role is 'customer'
+  if (req.user.role !== 'customer') {
+      return res.status(403).json({success: false, msg: "You do not have the required permissions"});
+  }
+
+  next();
+}
 
 declare global {
   namespace Express {

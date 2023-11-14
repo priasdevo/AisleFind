@@ -57,6 +57,43 @@ export const searchItem = async (req: Request, res: Response) => {
     }
 };
 
+// Get stats about all own items in specific store
+export const getItemsByStore = async (req: Request, res: Response) => {
+  const storeId = Number(req.params.storeId);
+
+  if (isNaN(storeId)) {
+    sendMessage('Log', 'user searched for item with invalid store id', { storeId });
+    return res.status(400).json({ message: 'Invalid store ID provided.' });
+  }
+
+  try {
+    // Check if the store belongs to the user
+    const store = await getRepository(Store).findOne({
+      where: { id: storeId } // Match both store ID and owner ID
+    });
+
+    if (!store) {
+      // If the store is not found or not owned by the user, return a Forbidden response
+      sendMessage('Log', 'user searched for item in invalid store', { storeId });
+      return res.status(404).json({ message: 'Not found: not found this store' });
+    }
+
+    // Retrieve all items from the store owned by the user and sort by search_count in descending order
+    const items = await getRepository(Item)
+      .createQueryBuilder("item")
+      .where("item.store_id = :storeId", { storeId })
+      .select(["item.id", "item.title", "item.description", "item.layout_id", "item.store_id"]) // Selecting specific column
+      .getMany();
+
+    // Return the sorted items
+    sendMessage('Log', 'user searched for item in store with id', { storeId });
+    return res.json(items);
+  } catch (error) {
+    // Handle any errors
+    sendMessage('Log', 'server error while getting item in store', { error });
+    return res.status(500).json({ message: 'Error retrieving store item.', error });
+  }
+}
 
 export const addItem = async (req: Request, res: Response) => {
     let body: IItem = req.body;
