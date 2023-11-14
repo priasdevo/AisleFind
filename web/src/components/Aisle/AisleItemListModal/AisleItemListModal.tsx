@@ -19,7 +19,6 @@ const AisleItemListModal = (props: ItemListModal) => {
         position: "absolute",
         left: `${leftPosition}px`, // Use the calculated position
         top: `${topPosition}px`, // Use the calculated position
-        minWidth: "200px",
         borderRadius: "12px",
         boxShadow: "2px 2px 20px 0px rgba(0, 0, 0, 0.20)",
       }}

@@ -3,15 +3,22 @@ import StoreList from "@/components/Store/StoreList";
 import Header from "@/components/header";
 import { useUser } from "@/context/userContext";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
-  const { role } = useUser();
+  const { role, isLogin } = useUser();
   const router = useRouter();
-  if (role === "customer") {
-    router.replace("/aisle/customer");
-  } else if (!role) {
-    router.replace("/login");
-  }
+  useEffect(() => {
+    if (isLogin && role === "customer") {
+      console.log("Prias role : ", role);
+      router.replace("/aisle/customer");
+    } else if (!isLogin) {
+      console.log("Prias role : ", role);
+      router.replace("/login");
+    } else {
+      console.log("Prias role : ", role);
+    }
+  }, [role]);
 
   return (
     <>

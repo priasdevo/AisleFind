@@ -8,13 +8,7 @@ const AislePage = () => {
   return (
     <div>
       <Header />
-      <Box
-        display="flex"
-        height="100vh"
-        width="100vw"
-        alignItems="center"
-        justifyContent="center"
-      >
+      <Box display="flex" height="90vh" width="100vw" justifyContent="center">
         <AisleGrid2 isOwner={false} />
       </Box>
     </div>

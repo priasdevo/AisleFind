@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CELLSTATUS } from "@/components/Aisle/constants";
 import { useSnackbar } from "@/context/snackbarContext";
 import { usePathname } from "next/navigation";
@@ -22,6 +22,7 @@ type Position = {
   row_span?: number;
   col_span?: number;
   type?: string;
+  store_id?: number;
 };
 
 export type ItemPos = {
@@ -64,6 +65,7 @@ const useAisleCustomer = () => {
   const [selected, setSelected] = useState<CellDetail | null>(null);
   const [objectList, setObjectList] = useState<Position[]>([]);
   const [selectedShop, setSelectedShop] = useState(-1);
+  const loading = useRef(0);
 
   const pathName = usePathname();
   const [id, setId] = useState<string | undefined>(); // State is now explicitly typed
@@ -85,7 +87,10 @@ const useAisleCustomer = () => {
   }, [selectedShop]);
 
   useEffect(() => {
-    if (store) {
+    if (
+      store &&
+      (objectList.length === 0 || objectList[0].store_id === store.id)
+    ) {
       const grid: boolean[][] = Array.from({ length: store?.size_y! }, () =>
         Array(store?.size_x).fill(false)
       );

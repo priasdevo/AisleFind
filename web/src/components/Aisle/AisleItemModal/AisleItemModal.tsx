@@ -16,6 +16,7 @@ const AisleItemModal = (props: modalProps) => {
   const { isShow, cancel, confirm, shelfName, mode, startName, startDetails } =
     props;
 
+  if (!isShow) return null;
   useEffect(() => {
     console.log("Current startName : ", startName);
     setProductName(startName);

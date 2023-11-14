@@ -28,6 +28,7 @@ export const UserProvider = ({ children }: React.PropsWithChildren<{}>) => {
         );
         const data = await res.json();
         if (data.success) {
+          console.log("Prias set new role : ", data.role);
           setEmail(data.username);
           setRole(data.role);
           setIsLogin(true);

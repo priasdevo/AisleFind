@@ -7,6 +7,7 @@ import {
   LeftBlock,
   RightBlock,
   SmallIconButton,
+  SubGridWrapper,
 } from "./styled";
 import useAisle from "@/hooks/useAisle";
 import AisleCell from "./AisleCell/AisleCell";
@@ -19,15 +20,11 @@ import StatComponent from "./Stat/StatComponent";
 
 interface AisleGridProps {
   isOwner: boolean;
-  width: number;
-  height: number;
-  positions: [number, number, number, number][];
 }
 
 const AisleGrid = (props: AisleGridProps) => {
-  const { isOwner, width, height } = props;
-  const gridTemplateColumns = `repeat(${width}, 50px)`;
-  const gridTemplateRows = `repeat(${height}, 50px)`;
+  const { isOwner } = props;
+
   const {
     cellDetails,
     cellClickHandle,
@@ -42,6 +39,8 @@ const AisleGrid = (props: AisleGridProps) => {
     store,
     selectedItem,
   } = useAisle();
+  const gridTemplateColumns = `repeat(${store?.size_x}, 50px)`;
+  const gridTemplateRows = `repeat(${store?.size_y}, 50px)`;
   console.log("AisleGrid render");
 
   return (
@@ -97,29 +96,33 @@ const AisleGrid = (props: AisleGridProps) => {
         {/* Add any other content for the left side here */}
       </LeftBlock>
       {mode !== 8 && (
-        <AisleSubGrid
-          gridTemplateColumns={gridTemplateColumns}
-          gridTemplateRows={gridTemplateRows}
-        >
-          {cellDetails.map((cell) => (
-            <AisleCell
-              key={`empty-${cell.startRow}-${cell.startColumn}`}
-              isOwner={isOwner}
-              startColumn={cell.startColumn}
-              columnSpan={cell.columnSpan}
-              startRow={cell.startRow}
-              rowSpan={cell.rowSpan}
-              selected={cell.selected}
-              status={cell.status}
-              text={cell.id}
-              type={cell.type}
-              onClick={() => {
-                cellClickHandle(cell.startRow, cell.startColumn);
-              }}
-            />
-          ))}
-        </AisleSubGrid>
-      )}{" "}
+        <SubGridWrapper>
+          <AisleSubGrid
+            gridTemplateColumns={gridTemplateColumns}
+            gridTemplateRows={gridTemplateRows}
+            columnCount={store?.size_y!}
+            rowCount={store?.size_x!}
+          >
+            {cellDetails.map((cell) => (
+              <AisleCell
+                key={`empty-${cell.startRow}-${cell.startColumn}`}
+                isOwner={isOwner}
+                startColumn={cell.startColumn}
+                columnSpan={cell.columnSpan}
+                startRow={cell.startRow}
+                rowSpan={cell.rowSpan}
+                selected={cell.selected}
+                status={cell.status}
+                text={cell.id}
+                type={cell.type}
+                onClick={() => {
+                  cellClickHandle(cell.startRow, cell.startColumn);
+                }}
+              />
+            ))}
+          </AisleSubGrid>
+        </SubGridWrapper>
+      )}
       {mode === 8 && <StatComponent itemList={itemList} />}
       <AisleRightBlock
         changeMode={changeMode}

@@ -9,7 +9,7 @@ export const StoreBlock = styled("div")`
   padding: 16px;
   width: 19vw;
   min-width: 366px;
-  min-height: 80vh;
+  max-height: 80vh;
 `;
 
 export const InputBox = styled("input")`

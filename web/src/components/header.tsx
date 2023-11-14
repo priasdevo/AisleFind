@@ -4,9 +4,11 @@ import { AiOutlineSearch } from "react-icons/ai";
 import { MdLogout, MdOutlineStorefront } from "react-icons/md";
 import { useUser } from "@/context/userContext";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const { isLogin, logout, role } = useUser();
+  const router = useRouter();
 
   return (
     <div className="header-container">
@@ -25,7 +27,13 @@ export default function Header() {
               <p>รายชื่อร้านค้า</p>
             </button>
           </Link>
-          <button className="small-button" onClick={logout}>
+          <button
+            className="small-button"
+            onClick={() => {
+              logout();
+              router.push("/login");
+            }}
+          >
             <MdLogout />
           </button>
         </>

@@ -22,6 +22,7 @@ type Position = {
   row_span?: number;
   col_span?: number;
   type?: string;
+  store_id?: number;
 };
 
 export type ItemPos = {
@@ -84,7 +85,10 @@ const useAisle = () => {
   }, [id]);
 
   useEffect(() => {
-    if (store) {
+    if (
+      store &&
+      (objectList.length === 0 || objectList[0].store_id === store.id)
+    ) {
       const grid: boolean[][] = Array.from({ length: store?.size_y! }, () =>
         Array(store?.size_x).fill(false)
       );

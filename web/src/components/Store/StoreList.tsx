@@ -37,7 +37,8 @@ const StoreList = () => {
           borderRadius: "12px",
           marginTop: "21px",
           padding: "18px",
-          minHeight: "500px",
+          maxHeight: "500px",
+          overflowY: "scroll",
           gap: "10px",
         }}
       >
