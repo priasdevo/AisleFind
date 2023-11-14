@@ -147,7 +147,9 @@ const useAisleCustomer = () => {
 
     setCellDetails((prevDetails) =>
       prevDetails.map((cell, index) => {
-        if (cell.id === layout_id) {
+        if (!cell.id) {
+          return cell;
+        } else if (cell.id === layout_id) {
           setSelected(cell);
           return {
             ...cell,
@@ -167,7 +169,9 @@ const useAisleCustomer = () => {
     setSelectedItem(-1);
     setCellDetails((prevDetails) =>
       prevDetails.map((cell, index) => {
-        if (cell.id === id) {
+        if (!cell.id) {
+          return cell;
+        } else if (cell.id === id) {
           setSelected(cell);
           return {
             ...cell,

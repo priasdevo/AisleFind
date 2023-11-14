@@ -84,7 +84,7 @@ const useAisle = () => {
   }, [id]);
 
   useEffect(() => {
-    if (objectList.length !== 0 && store) {
+    if (store) {
       const grid: boolean[][] = Array.from({ length: store?.size_y! }, () =>
         Array(store?.size_x).fill(false)
       );
@@ -336,7 +336,7 @@ const useAisle = () => {
       destination.pos_y,
       objectToMove.row_span!,
       objectToMove.col_span!,
-      objectToMove.type
+      objectToMove.type!
     );
 
     // Clear the selected state

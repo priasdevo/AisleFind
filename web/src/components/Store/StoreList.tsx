@@ -1,16 +1,30 @@
 import { Typography } from "@mui/material";
-import { StoreBlock } from "./styled";
+import { InputBox, StoreBlock } from "./styled";
 import { GrAdd } from "react-icons/gr";
 import useStore from "@/hooks/useStore";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import StoreCreateModal from "./StoreCreateModal/StoreCreateModal";
+import { useState } from "react";
 
 const StoreList = () => {
-  const { allStore } = useStore();
-  const router = useRouter();
+  const { allStore, createNewStore } = useStore();
+  const [isOpen, setIsOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [size_x, setSize_x] = useState(0);
+  const [size_y, setSize_y] = useState(0);
   return (
     <StoreBlock>
       <button className="small-button" style={{ width: "120px" }}>
-        <Typography variant="button" sx={{ marginRight: "7px" }}>
+        <Typography
+          variant="button"
+          sx={{ marginRight: "7px" }}
+          onClick={() => {
+            setIsOpen((prev) => {
+              return !prev;
+            });
+          }}
+        >
           เพิ่มร้านค้า
         </Typography>
         <GrAdd />
@@ -34,18 +48,52 @@ const StoreList = () => {
             <div
               style={{ display: "flex", flexDirection: "column", gap: "0px" }}
               key={store.id}
-              onClick={() => {
-                router.push(`/aisle/${store.id}`);
-              }}
             >
-              <Typography variant="subtitle1">{store.title}</Typography>
-              <Typography variant="subtitle2" sx={{ color: "#8E8E8E" }}>
-                {store.description}
-              </Typography>
+              <Link href={`/aisle/${store.id}`}>
+                <Typography variant="subtitle1">{store.title}</Typography>
+                <Typography variant="subtitle2" sx={{ color: "#8E8E8E" }}>
+                  {store.description}
+                </Typography>
+              </Link>
             </div>
           );
         })}
       </div>
+      <StoreCreateModal
+        isOpen={isOpen}
+        onConfirm={() => {
+          setIsOpen(false);
+          createNewStore(title, description, size_x, size_y);
+        }}
+        cancel={() => {
+          setIsOpen(false);
+        }}
+      >
+        <InputBox
+          type="text"
+          placeholder="ชื่อร้าน"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <InputBox
+          type="text"
+          placeholder="รายละเอียดร้าน"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <InputBox
+          type="number"
+          placeholder="ขนาดร้าน (แนวนอน) "
+          value={size_x}
+          onChange={(e) => setSize_x(parseInt(e.target.value))}
+        />
+        <InputBox
+          type="number"
+          placeholder="ขนาดร้าน (แนวตั้ง)"
+          value={size_y}
+          onChange={(e) => setSize_y(parseInt(e.target.value))}
+        />
+      </StoreCreateModal>
     </StoreBlock>
   );
 };
