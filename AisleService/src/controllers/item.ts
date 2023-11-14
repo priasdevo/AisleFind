@@ -141,7 +141,7 @@ export const addItem = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Server error while adding item.', error });
     }
 }
-
+/*
 export const editItem = async (req: Request, res: Response) => {
     const itemId = Number(req.params.id);
     const owner_Id = req.user?.id; // Assuming req.user is populated with the authenticated user's information
@@ -180,6 +180,7 @@ export const editItem = async (req: Request, res: Response) => {
         sendMessage('Log', 'user tried to edit item with invalid layout id', { newLayoutId });
         return res.status(400).json({ message: 'The provided layout does not exist in this store.' });
       }
+      
     }
   
     // Prevent modification of store_id and search_count
@@ -189,7 +190,7 @@ export const editItem = async (req: Request, res: Response) => {
   
     // Merge new data with the existing item, excluding store_id and search_count
     itemRepository.merge(item, updatedData);
-  
+    item.layout_id = newLayoutId; // Directly update the layout_id
     // Save the updated item
     try {
       const result = await itemRepository.save(item);
@@ -207,8 +208,70 @@ export const editItem = async (req: Request, res: Response) => {
       return res.status(500).json({ message: 'Error updating item.', error });
     }
   }
-  
-  
+  */
+
+export const editItem = async (req: Request, res: Response) => {
+  const itemId = Number(req.params.id);
+  const owner_Id = req.user?.id; // Assuming req.user is populated with the authenticated user's information
+  const newLayoutId = req.body.layout_id;
+
+  if (isNaN(itemId)) {
+      sendMessage('Log', 'user tried to edit item with invalid id', { itemId });
+      return res.status(400).json({ message: 'Invalid item ID provided.' });
+  }
+
+  // Retrieve the item along with the store and layout information
+  const itemRepository = getRepository(Item);
+  const item = await itemRepository.findOne({
+      where: { id: itemId },
+      relations: ['store', 'layout'] // Assuming there's a relation 'layout' defined in your Item entity
+  });
+
+  if (!item) {
+      sendMessage('Log', 'user tried to edit item that does not exist', { itemId });
+      return res.status(404).json({ message: 'Item not found.' });
+  }
+
+  // Check if the user is the owner of the store associated with the item
+  if (item.store.owner_id !== owner_Id) {
+      sendMessage('Log', 'user tried to edit item not belonging to them', { itemId });
+      return res.status(403).json({ message: 'You are not authorized to edit this item.' });
+  }
+
+  // Update layout if a new layout_id is provided
+  if (newLayoutId) {
+      const layoutRepository = getRepository(Layout);
+      const layout = await layoutRepository.findOne({where: { id: newLayoutId }});
+      if (!layout) {
+          sendMessage('Log', 'user tried to edit item with invalid layout id', { newLayoutId });
+          return res.status(400).json({ message: 'Invalid layout ID provided.' });
+      }
+      item.layout = layout; // Directly update the layout relation
+      item.layout_id = newLayoutId; // Directly update the layout_id
+  }
+
+  // Update other fields except for store_id and search_count
+  const updatedData = { ...req.body };
+  delete updatedData.store_id;
+  delete updatedData.search_count;
+  itemRepository.merge(item, updatedData);
+
+  // Save the updated item
+  try {
+      const result = await itemRepository.save(item);
+      sendMessage('Log', 'user edited item with id', { itemId });
+      const itemData = {
+        ...result,
+        store: undefined,
+        layout: undefined,
+        // any other relations to exclude...
+      };
+      return res.json(itemData);
+  } catch (error) {
+      sendMessage('Log', 'server error while editing item', { error });
+      return res.status(500).json({ message: 'Error updating item.', error });
+  }
+}
 
 export const deleteItem = async (req: Request, res: Response) => {
     const itemId = Number(req.params.id);
