@@ -8,7 +8,6 @@ const mockPositions = [
 ];
 
 const AislePage = () => {
-  console.log("Page render");
   return (
     <div>
       <Box

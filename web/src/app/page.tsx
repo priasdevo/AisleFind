@@ -10,19 +10,16 @@ export default function Home() {
   const router = useRouter();
   useEffect(() => {
     if (isLogin && role === "customer") {
-      console.log("Prias role : ", role);
       router.replace("/aisle/customer");
     } else if (!isLogin) {
-      console.log("Prias role : ", role);
       router.replace("/login");
     } else {
-      console.log("Prias role : ", role);
     }
   }, [role]);
 
   return (
     <>
-      {role && (
+      {role && role === "owner" && (
         <>
           <Header />
           <StoreList />

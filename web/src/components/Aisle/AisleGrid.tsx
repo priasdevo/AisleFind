@@ -41,7 +41,6 @@ const AisleGrid = (props: AisleGridProps) => {
   } = useAisle();
   const gridTemplateColumns = `repeat(${store?.size_x}, 50px)`;
   const gridTemplateRows = `repeat(${store?.size_y}, 50px)`;
-  console.log("AisleGrid render");
 
   return (
     <AisleGridWrapper>

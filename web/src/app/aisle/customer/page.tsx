@@ -4,7 +4,6 @@ import AisleGrid2 from "@/components/Aisle/AisleGrid2";
 import Header from "@/components/header";
 
 const AislePage = () => {
-  console.log("Page render");
   return (
     <div>
       <Header />

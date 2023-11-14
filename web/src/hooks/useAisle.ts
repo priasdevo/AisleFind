@@ -227,7 +227,6 @@ const useAisle = () => {
               })
             );
           } else if (!cell.selected) {
-            console.log("Prias test");
             setSelected((prevSelected) => [
               ...prevSelected,
               {
@@ -249,7 +248,6 @@ const useAisle = () => {
               })
             );
           }
-          console.log("Prias ?? : ", cell.selected);
           return {
             ...cell,
             selected: !cell.selected,
@@ -370,7 +368,6 @@ const useAisle = () => {
     itemShelf: string,
     itemDescription: string
   ) => {
-    console.log("ConfirmItem : ", selectedItem);
     if (mode === 5) {
       createItem(itenName, itemDescription, id!, itemShelf);
       setMode(4);
@@ -701,8 +698,6 @@ const useAisle = () => {
   }
 
   useEffect(() => {
-    console.log("Prias current selected : ", selected);
-    console.log("Prias cell Details : ", cellDetails);
     if (selected.length !== 0 && selected[selected.length - 1].id) {
       setShelfName(selected[selected.length - 1].id.toString());
     } else {

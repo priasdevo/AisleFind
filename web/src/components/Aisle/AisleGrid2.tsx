@@ -69,7 +69,6 @@ const AisleGrid2 = (props: AisleGridProps) => {
   }, [allStore, searchValue2]);
 
   useEffect(() => {
-    console.log("Prias itemList : ", itemList);
     setFilteredItems(
       itemList.length !== 0
         ? itemList.filter(
@@ -88,8 +87,6 @@ const AisleGrid2 = (props: AisleGridProps) => {
         : []
     );
   }, [itemList, selected]);
-
-  console.log("AisleGrid render");
 
   return (
     <AisleGridWrapper>

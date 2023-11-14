@@ -79,7 +79,6 @@ const useAisleCustomer = () => {
 
   useEffect(() => {
     if (selectedShop !== -1) {
-      console.log(selectedShop);
       fetchData();
       fetchLayout();
       fetchItem();
@@ -241,7 +240,7 @@ const useAisleCustomer = () => {
       const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
       const response = await fetch(
         process.env["NEXT_PUBLIC_GATEWAY_URL"] +
-          "/aisle/items/stats/store/" +
+          "/aisle/items/store/" +
           selectedShop,
         {
           method: "GET",
@@ -257,10 +256,6 @@ const useAisleCustomer = () => {
       console.error("Error fetching data:", error);
     }
   }
-
-  useEffect(() => {
-    console.log("Prias selected : selected ", selected);
-  });
 
   return {
     cellDetails,
