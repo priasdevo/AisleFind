@@ -292,6 +292,7 @@ const useAisle = () => {
       );
       setSelected([]);
     } else {
+      displaySnackbar("Selected is not rectangle.", "error");
       console.log("Selected is not rectangle : ", selected);
     }
   };

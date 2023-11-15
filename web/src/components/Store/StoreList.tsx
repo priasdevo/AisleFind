@@ -31,6 +31,8 @@ const StoreList = () => {
       </button>
       <div
         style={{
+          display: "flex",
+          flexDirection: "column",
           width: "100%",
           backgroundColor: "#FFEBDC",
           boxShadow: "2px 2px 20px 0px rgba(0, 0, 0, 0.20)",
