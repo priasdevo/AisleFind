@@ -257,6 +257,27 @@ const useAisleCustomer = () => {
     }
   }
 
+  async function fetchItemByTitle(search: string) {
+    try {
+      const token = localStorage.getItem("token"); // Replace with actual token retrieval logic
+      const response = await fetch(
+        process.env["NEXT_PUBLIC_GATEWAY_URL"] +
+          "/aisle/items/aisle/?title=" +
+          search,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+        }
+      );
+      const data = await response.json();
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
   return {
     cellDetails,
     selectedShop,
@@ -269,6 +290,7 @@ const useAisleCustomer = () => {
     selectItem,
     selected,
     selectCell,
+    fetchItemByTitle,
   };
 };
 

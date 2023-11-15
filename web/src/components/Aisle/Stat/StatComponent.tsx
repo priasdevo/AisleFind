@@ -18,6 +18,7 @@ const StatComponent = (props: StatProps) => {
   const { itemList } = props;
   const [search, setSearch] = useState("");
   const [itemStat, setItemStat] = useState<ItemPos[]>([]);
+  const [maxSearch, setMaxSearch] = useState<number>(1);
 
   useEffect(() => {
     const sortedItems = [...itemList].sort(
@@ -40,32 +41,47 @@ const StatComponent = (props: StatProps) => {
       </div>
 
       <div>
-        <h2>เรียงตามจำนวนสินค้าที่มีในคลัง</h2>
+        <h2>เรียงตามจำนวนการคนหาสินค้าของผู้ใช้</h2>
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             width: "100%",
+            gap: "15px",
+            marginTop: "15px",
           }}
         >
           {itemStat
             .filter((stat) => stat.title.includes(search))
-            .map((stat, idx) => (
-              <div key={idx} style={{ textAlign: "center" }}>
-                <div
-                  style={{
-                    width: "50px",
-                    height: `${(stat.search_count / maxStat) * 200}px`,
-                    marginTop: `${200 - (stat.search_count / maxStat) * 200}px`,
-                    background: "#FFA07A",
-                    marginBottom: "5px",
-                    transition: "height 0.3s ease",
-                  }}
-                />
-                <span>{stat.search_count}</span>
-                <p>{stat.title}</p>
-              </div>
-            ))}
+            .map((stat, idx) => {
+              if (idx >= 5) {
+                return <></>;
+              } else if (
+                idx === 1 &&
+                stat.search_count !== 0 &&
+                stat.search_count !== maxSearch
+              ) {
+                setMaxSearch(stat.search_count);
+              }
+              return (
+                <div key={idx} style={{ textAlign: "center" }}>
+                  <div
+                    style={{
+                      width: "50px",
+                      height: `${(stat.search_count / maxSearch) * 200}px`,
+                      marginTop: `${
+                        200 - (stat.search_count / maxSearch) * 200
+                      }px`,
+                      background: "#FFA07A",
+                      marginBottom: "5px",
+                      transition: "height 0.3s ease",
+                    }}
+                  />
+                  <span>{stat.search_count}</span>
+                  <p>{stat.title}</p>
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>

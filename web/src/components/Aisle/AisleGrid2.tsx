@@ -48,6 +48,7 @@ const AisleGrid2 = (props: AisleGridProps) => {
     selectedItem,
     selected,
     selectCell,
+    fetchItemByTitle,
   } = useAisleCustomer();
   const gridTemplateColumns = `repeat(${store?.size_x}, 50px)`;
   const gridTemplateRows = `repeat(${store?.size_y}, 50px)`;
@@ -78,6 +79,7 @@ const AisleGrid2 = (props: AisleGridProps) => {
           )
         : []
     );
+    fetchItemByTitle(searchValue);
   }, [itemList, searchValue]);
 
   useEffect(() => {
