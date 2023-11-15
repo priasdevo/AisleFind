@@ -268,6 +268,17 @@ const useAisle = () => {
       const newRowSpan = maxRow - minRow + 1;
       const newColSpan = maxCol - minCol + 1;
 
+      if (objectText === "ประตู" && newRowSpan !== 1 && newColSpan !== 1) {
+        displaySnackbar("Door must has 1 rowspan/colspan.", "error");
+        return;
+      } else if (
+        objectText === "ประตู" &&
+        minRow !== store?.size_y!! &&
+        minCol !== store?.size_x!
+      ) {
+        displaySnackbar(`Door must be at border of store.`, "error");
+        return;
+      }
       createNewObject(
         minRow,
         minCol,

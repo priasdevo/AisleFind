@@ -42,10 +42,10 @@ const useLoginForm = () => {
       if (!data.success) {
         displaySnackbar("login failed", "error");
       } else {
-        router.push("/");
         localStorage.setItem("token", data.token);
         setIsLogin(true);
         setEmail(username);
+        router.push("/");
       }
     } catch (error) {
       console.log(error);
